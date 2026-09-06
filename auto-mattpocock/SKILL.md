@@ -1,101 +1,140 @@
 ---
 name: auto-mattpocock
-description: 把 Matt-Pocock 工程流程变成项目的默认迭代方式，可移植、自初始化。当用户以普通对话提出需求（新功能、修改、bug、设计决策、继续/执行某功能）时，判断所处阶段并执行对应工程技能，产出 spec + tickets。首次使用自动完成两段初始化：按 mattpocock/skills 官方 README 的推荐途径安装缺失的依赖技能到本技能所在层级（项目级或用户级），并执行 setup-matt-pocock-skills 的仓库配置流程（写 AGENTS.md + docs/agents/）。开发者无需记忆任何技能名。
+description: Makes the Matt-Pocock engineering workflow the project's default iteration mode — portable and self-initializing. When the user makes a request in conversation (feature, change, bug, design decision, continue/execute), determine the current stage and execute the matching engineering skill, producing spec + tickets. On first use it completes two init phases: install missing dependency skills to this skill's own level (project or user) via the mattpocock/skills official README's recommended route, and run setup-matt-pocock-skills to configure the repo (write AGENTS.md + docs/agents/). Developers never need to remember skill names.
 ---
 
 # Auto Matt-Pocock
 
-把 Matt-Pocock 工程流程（设计澄清 → spec → tickets → 实现 → 审查）变成项目的默认迭代方式。
-本技能是**可移植的路由器**：它只做阶段判断，实际流程由它发现/安装的工程技能执行。
-**开箱即用**：把它放到任何项目的技能目录（或用户级技能目录），首次运行自动补齐依赖。
+Makes the Matt-Pocock engineering workflow (clarify → spec → tickets → implement → review) the
+project's default iteration mode. This skill is a **portable router**: it only decides the stage;
+the actual flows are executed by engineering skills it discovers/installs. **Out of the box**: drop
+it into any project's skills dir (or user-level), first run installs its dependencies.
 
-## 前置：初始化（每次运行先检查）
+## Preflight: initialization (check every run)
 
-依赖的工程技能（下表）可能尚未安装——尤其在新项目或用户级安装时。**每次运行先检查它们是否可发现，缺失的先安装，再走阶段判断。**
+Dependency engineering skills (table below) may not be installed — especially on a new project or a
+user-level install. **Every run, first check they are discoverable; install what's missing, then do
+stage routing.**
 
-### 依赖清单
+### Dependency list
 
-| 依赖技能 | 何时需要 |
+| Dependency skill | Needed for |
 | --- | --- |
-| grill-with-docs | 阶段 A 设计澄清 |
-| to-spec | 阶段 B/D spec |
-| to-tickets | 阶段 C/D ticket |
-| implement | 阶段 C 实现 |
-| code-review | 实现后审查 |
-| diagnosing-bugs | 阶段 E 疑难 bug |
-| tdd | implement 内可选 |
-| setup-matt-pocock-skills | 产出 AGENTS.md/docs 约定 |
+| grill-with-docs | Stage A design clarification |
+| to-spec | Stage B/D spec |
+| to-tickets | Stage C/D tickets |
+| implement | Stage C implementation |
+| code-review | Post-implementation review |
+| diagnosing-bugs | Stage E hard bugs |
+| tdd | optional inside implement |
+| setup-matt-pocock-skills | produce AGENTS.md / docs conventions |
 
-### 检查与安装
+### Check & install
 
-**如何判断依赖可发现**：本技能所在目录的**同级目录**（即与 `auto-mattpocock/` 并列的兄弟技能目录，如 `.agents/skills/` 或用户级 `skills/` 下的其他目录）中存在 `<依赖名>/SKILL.md`，或已知技能根（见下）能搜到。缺失即在安装清单内。可用 glob 或目录列举逐个确认（如搜 `**/to-spec/SKILL.md`、`**/to-tickets/SKILL.md`）。
+**How to tell a dependency is discoverable**: a `<name>/SKILL.md` exists in a sibling skills
+directory at this skill's own level (e.g. `.agents/skills/` or a user-level `skills/` dir), or is
+findable in the known skill roots below. Anything missing goes on the install list. Confirm with
+glob or directory listing (e.g. search `**/to-spec/SKILL.md`, `**/to-tickets/SKILL.md`).
 
-**安装到哪**：**跟随本技能所在层级**——本技能在项目技能目录（如 `X/.agents/skills/`）→ 依赖装项目级；本技能在用户级（如 `~/.agents/skills/`）→ 依赖装用户级。**不写死项目级路径，不缓存安装命令。**
+**Where to install**: **follow this skill's own level** — this skill in a project skills dir (e.g.
+`X/.agents/skills/`) → install dependencies project-level; in a user-level dir (e.g.
+`~/.agents/skills/`) → install user-level. **No hardcoded project path, no cached install command.**
 
-**如何安装（以官方 README 为准，勿写死命令）**：mattpocock/skills 的安装方式会随官方演进（当前多种途径：skills CLI、Claude Code plugin 等）。**执行时先读取官方 README 的 Installation 章节**（https://github.com/mattpocock/skills —— 用 web_fetch 读 raw README：`https://raw.githubusercontent.com/mattpocock/skills/main/README.md`），按其**最新推荐的、适用于当前 agent/场景的途径**执行。然后：
+**How to install (defer to the official README, never hardcode the command)**: mattpocock/skills'
+install route evolves (currently several: skills CLI, Claude Code plugin, …). **Before installing,
+read the official README's Installation section** (`https://github.com/mattpocock/skills` — fetch the
+raw README at `https://raw.githubusercontent.com/mattpocock/skills/main/README.md`) and follow its
+**latest recommended route for the current agent/situation**. Then:
 
-- 确保安装覆盖**本依赖清单里的全部技能**（无论哪种安装途径，都要让 setup-matt-pocock-skills 在内的 8 个技能可用）
-- 若官方途径是交互式的（如 skills CLI 让你挑技能/agent），用其非交互 flags 或程序化应答完成，不卡在交互上
-- 保持官方工具对安装的追踪（如 skills CLI 的 `skills-lock.json`）完整，不要绕过它手写文件
-- 用户级安装用官方途径的全局/用户级开关（如 skills CLI 的 `-g`）
+- Make sure the install covers **every skill in the dependency list** (however it installs, all 8
+  skills including setup-matt-pocock-skills must be available)
+- If the official route is interactive (e.g. skills CLI asking which skills/agents), drive it with
+  its non-interactive flags or programmatic answers — do not stall on prompts
+- Keep the official tool's install tracking (e.g. skills CLI's `skills-lock.json`) intact; do not
+  bypass it by hand-writing files
+- User-level installs use the official route's global/user switch (e.g. skills CLI `-g`)
 
-**无法访问官方源时**：告知用户"auto-mattpocock 需要联网按官方 README 安装依赖技能"，不硬跑。
+**If the official source is unreachable**: tell the user "auto-mattpocock needs network access to
+install dependency skills per the official README"; do not improvise.
 
-**已知技能根**（查找依赖时都扫）：本技能同级的 skills 目录、项目 `.agents/skills/`、项目 `.dsh/skills/`、用户 `~/.agents/skills/`、`~/.dsh/skills/`。
+**Known skill roots** (scan all when locating a dependency): this skill's sibling skills dir,
+project `.agents/skills/`, project `.dsh/skills/`, user `~/.agents/skills/`, `~/.dsh/skills/`.
 
-### 第 2 步：跑仓库配置（setup-matt-pocock-skills）
+### Step 2: run repo configuration (setup-matt-pocock-skills)
 
-**装完技能不等于配置完仓库。** setup-matt-pocock-skills 安装后还需**执行它的配置流程**一次，否则 `.scratch/`、`docs/agents/`（issue-tracker/triage/domain 三文件）、AGENTS.md 的 Agent skills 块都不存在，后续 to-spec/to-tickets 无处落盘。
+**Installing the skills is not configuring the repo.** After setup-matt-pocock-skills is installed,
+run its configuration flow once — otherwise `.scratch/`, `docs/agents/` (issue-tracker/triage/domain
+files), and AGENTS.md's Agent skills block don't exist, and to-spec/to-tickets have nowhere to land.
 
-**何时跑**：本技能**首次**在某个项目目录触发，且探测到该仓库尚未配置（无 `docs/agents/issue-tracker.md`、无 `AGENTS.md`/`CLAUDE.md` 的 `## Agent skills` 块）时。若已有这些产物，跳过（不重复配置）。
+**When to run**: the first time this skill fires in a project directory **and** probing shows the
+repo is unconfigured (no `docs/agents/issue-tracker.md`, no `## Agent skills` block in
+`AGENTS.md`/`CLAUDE.md`). If those exist, skip (don't reconfigure).
 
-**怎么跑**：按 `setup-matt-pocock-skills/SKILL.md` 的流程执行——它自己会探索仓库现状并逐节询问用户（issue tracker 选型 / triage 标签 / domain 布局），最后写 `docs/agents/` 三文件与 AGENTS.md 的 Agent skills 块。**它是 prompt-driven，需要用户回答几个问题**，不要跳过提问直接写。
+**How to run**: follow `setup-matt-pocock-skills/SKILL.md`'s flow — it probes the repo itself and
+asks the user section by section (issue tracker choice / triage labels / domain layout), then writes
+the three `docs/agents/` files and AGENTS.md's Agent skills block. **It is prompt-driven and needs a
+few user answers** — do not skip its questions and write directly.
 
-**完成判据**：`docs/agents/issue-tracker.md` 存在（或用户显式选择了 tracker 类型）；`AGENTS.md`/`CLAUDE.md` 有 `## Agent skills` 块；`CONTEXT.md` 约定就位。
+**Completion**: `docs/agents/issue-tracker.md` exists (or the user explicitly chose a tracker type);
+`AGENTS.md`/`CLAUDE.md` has an `## Agent skills` block; `CONTEXT.md` conventions in place.
 
-**完成判据**：阶段判断所需的最小依赖集（对应即将进入的阶段）已可发现；若安装失败（无网络/无 git），明确告知用户"auto-mattpocock 需要联网安装依赖技能"，不硬跑。
+## How to execute skills
 
-## 执行方式
+Most dependency engineering skills are user-invoked (`disable-model-invocation: true`); the model
+cannot fire them through the Skill tool. **Workaround: read the target skill's SKILL.md file with the
+read tool and follow its instructions.** Locate it by searching the known skill roots for
+`<name>/SKILL.md`; use the first hit (installed at this skill's level wins).
 
-依赖的工程技能大多是 user-invoked（`disable-model-invocation: true`），模型不能通过 Skill 工具触发它们。**替代机制：用 read 工具读取目标技能的 SKILL.md 文件，按其指令执行。** 定位目标技能：在"已知技能根"中搜索 `<技能名>/SKILL.md`，第一个找到即用（安装到本技能同级的优先）。
+**This skill only routes; it does not duplicate skill content.** The target SKILL.md is authoritative.
 
-**本技能只做阶段判断，不重复技能内容。** 目标 SKILL.md 是权威指令。
+## Stage routing
 
-## 阶段判断
+### A. Design / planning
+**Trigger**: major change, large new feature, unclear requirements, design decisions or direction
+questions (stack choice, domain concepts, architecture trade-offs).
+**Execute**: read grill-with-docs' SKILL.md and follow it → produce/update `CONTEXT.md` terms and
+`docs/adr/` decisions.
+**Completion**: design tree walked (no open branches), terms recorded. Then proceed to B.
 
-### A. 设计 / 规划阶段
-**触发**：重大变更、新的大功能、需求不清晰、有设计决策或方向性问题。
-**执行**：读 grill-with-docs 的 SKILL.md 执行 → 产出/更新 `CONTEXT.md` 术语与 `docs/adr/` 决策。
-**完成判据**：设计树走完、术语已落盘。然后进入 B。
+### B. Spec stage
+**Trigger**: requirements are clear; the discussion should be frozen into a spec.
+**Execute**: read to-spec's SKILL.md → produce `.scratch/<feature-slug>/spec.md`
+(`Status: ready-for-agent`).
+**Completion**: spec has problem statement/solution/user stories/implementation & testing
+decisions, published. Then **ask the user whether to break it into tickets**.
 
-### B. Spec 阶段
-**触发**：需求已清楚、要把讨论固化成 spec。
-**执行**：读 to-spec 的 SKILL.md 执行 → 产出 `.scratch/<feature-slug>/spec.md`（`Status: ready-for-agent`）。
-**完成判据**：spec 含问题陈述/解决方案/用户故事/实现与测试决定，已发布。完成后**询问用户是否拆 ticket**。
+### C. Tickets + execution
+**Trigger**: user says "execute / start / break into tickets / implement / continue".
+**Execute**: first read to-tickets to break down (produce `.scratch/<feature-slug>/issues/NN-*.md`)
+→ then read implement to execute (may use tdd).
+**Completion**: all tickets implemented, tests passing. Then verify with code-review.
 
-### C. 拆解 + 执行阶段
-**触发**：用户说"执行 / 开始做 / 拆 ticket / 实现 / 继续实现"。
-**执行**：先读 to-tickets 拆解（产出 `.scratch/<feature-slug>/issues/NN-*.md`）→ 再读 implement 执行（可用 tdd）。
-**完成判据**：tickets 全部实现、测试通过。完成后用 code-review 验证。
+### D. Modification stage (bug / wrong / change)
+**Trigger**: user reports a defect, points out something is wrong / off from spec or prototype, or
+asks for a change.
+**Root-cause first** (per AGENTS.md's Correction-handling rule): compare against the spec and
+prototype, decide which layer is wrong:
 
-### D. 修改阶段（bug / 改错 / 变更）
-**触发**：用户报告缺陷、指出"不对 / 和原型不符 / 要改"，或提出变更需求。
-**先做根因分流**（遵循 `AGENTS.md` 的 Correction-handling rule）：对照 spec 与原型，判定错在哪层：
+1. **Spec wrong / requirement change**: read to-spec and update the spec.
+2. **Ticket wrong**: read to-tickets and update the ticket.
+3. **Code wrong**: fix the code directly, then verify against spec/prototype.
 
-1. **Spec 错 / 需求变更**：读 to-spec 更新 spec。
-2. **Ticket 错**：读 to-tickets 更新 ticket。
-3. **代码错**：直接修改代码，改完对照 spec/原型验证。
+**Branch rule**: spec and prototype conflict → stop and ask the user to arbitrate (never pick a
+side); spec clear and implementation deviates → branch 3.
 
-**分支判据**：spec 与原型冲突 → 停下请用户裁决；spec 明确且实现偏离 → 分支 3。
+**Mandatory closing check (every branch)**: verify spec / ticket / code are consistent — a spec
+change makes tickets stale, so update tickets too; never assume "it's done so no sync needed".
 
-**强制收尾校验（每个分支）**：核对 spec / ticket / 代码三方一致——spec 变更会使 ticket 过时，ticket 随之更新；不要假设"已完成就不需同步"。
+### E. Hard bugs / performance regressions
+**Trigger**: unexplained crash / error / slowness.
+**Execute**: read diagnosing-bugs and follow it (build feedback loop → reproduce → hypothesize →
+fix → regression test).
 
-### E. 疑难 bug / 性能回归
-**触发**：原因不明的崩溃/报错/慢。
-**执行**：读 diagnosing-bugs 执行（建反馈回路 → 复现 → 假设 → 修 → 回归测试）。
+## General rules
 
-## 总则
-
-- 用户不需要知道自己在哪个阶段——判断是本技能的职责；进入新阶段时用一句话说明"进入 X 阶段，将产出 Y"。
-- 产物落点与术语以 `docs/agents/issue-tracker.md`、`CONTEXT.md`、`AGENTS.md` 为准（未初始化时提示先跑 setup-matt-pocock-skills 或由它自动完成）。
-- 一次只推进一个阶段；阶段间需要用户确认（如 spec 是否拆 ticket）就停下来问。
+- The user doesn't need to know which stage they're in — deciding is this skill's job; when entering
+  a new stage, say in one line "entering stage X, will produce Y" so they have expectations.
+- Artifact locations and terms follow `docs/agents/issue-tracker.md`, `CONTEXT.md`, `AGENTS.md`
+  (when uninitialized, prompt to run setup-matt-pocock-skills first or let it run).
+- Advance one stage at a time; when a stage boundary needs user confirmation (e.g. whether to break
+  the spec into tickets), stop and ask.

@@ -3,8 +3,8 @@
 ## General conventions
 
 - **Language**: AI agent conversations in this project default to {{language}}.
-- **Iteration workflow**: 需求、变更、bug 一律先走 `auto-mattpocock` 技能（它负责判断阶段并执行对应工程流程，产出 spec + tickets）。
-- **Deployment**: 部署/升级由 `deploy-to-server` 技能一键完成（配置见 `deploy.config.json`）；直接对 agent 说"部署"即可。
+- **Iteration workflow**: Route every feature, change, and bug request through the `auto-mattpocock` skill — it decides the stage and runs the matching engineering flow (spec + tickets).
+- **Deployment**: Deploys/upgrades are done in one step by the `deploy-to-server` skill (config in `deploy.config.json`); just tell the agent "deploy".
 - **Issue tracker**: Issues are tracked as local markdown files under `.scratch/<feature>/` (see `docs/agents/issue-tracker.md`).
 - **Domain docs**: Single-context layout — one `CONTEXT.md` + `docs/adr/` at the repo root (see `docs/agents/domain.md`).
 - **Correction-handling rule**: When asked to fix something that touches spec- or prototype-defined behavior, first compare the current implementation against the spec (`.scratch/<feature>/spec.md`) and the prototype (if one exists). Determine which layer the root cause is in:
@@ -14,7 +14,7 @@
 
 ## Tech stack
 
-- {{techstack_lines}}
+{{techstack_lines}}
 
 ## Agent skills
 

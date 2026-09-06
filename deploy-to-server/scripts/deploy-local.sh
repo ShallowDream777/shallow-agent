@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# ===== 打包项目为部署 tar（读 deploy.config.json）=====
-# 用法:  bash deploy-local.sh [项目根目录]
-# 默认:  当前目录为项目根
-# 产出:  <appName>-deploy.tar.gz（在项目根目录）
-# 依赖:  node 仅用于解析 JSON 配置（jq 或 node 二选一）
+# ===== Package the project into a deploy tar (reads deploy.config.json) =====
+# Usage: bash deploy-local.sh [project root]
+# Default: current dir as project root
+# Output: <appName>-deploy.tar.gz (in the project root)
+# Requires: node to parse the JSON config (or jq)
 set -euo pipefail
 
 ROOT="${1:-$(pwd)}"
 cd "${ROOT}"
 
-# ---- 读配置（优先 node，其次 jq）----
+# ---- Read config (node preferred, jq fallback) ----
 if command -v node >/dev/null 2>&1; then
   APP_NAME="$(node -e "console.log(require('./deploy.config.json').appName)")"
   EXCLUDES="$(node -e "
@@ -20,24 +20,24 @@ elif command -v jq >/dev/null 2>&1; then
   APP_NAME="$(jq -r .appName deploy.config.json)"
   EXCLUDES="$(jq -r '.excludes[]' deploy.config.json)"
 else
-  echo "需要 node 或 jq 读取 deploy.config.json" >&2; exit 1
+  echo "node or jq is required to read deploy.config.json" >&2; exit 1
 fi
 
 OUT="${APP_NAME}-deploy.tar.gz"
 
-echo "==> [1/2] 打包 -> ${OUT} (appName=${APP_NAME}) ..."
-# 先写临时目录，避免 tar 扫到输出文件自身
+echo "==> [1/2] Packaging -> ${OUT} (appName=${APP_NAME}) ..."
+# Write to a temp file first so tar never scans its own output
 TMP_OUT="$(mktemp)"
 TAR_ARGS=(-czf "${TMP_OUT}")
 while IFS= read -r e; do
   [ -n "$e" ] && TAR_ARGS+=(--exclude="$e")
 done <<< "${EXCLUDES}"
-TAR_ARGS+=(--exclude="${OUT}")   # 防自包含
+TAR_ARGS+=(--exclude="${OUT}")   # avoid self-inclusion
 TAR_ARGS+=(.)
 tar "${TAR_ARGS[@]}"
 mv "${TMP_OUT}" "${OUT}"
-echo "      包大小: $(du -h "${OUT}" | cut -f1)"
+echo "      size: $(du -h "${OUT}" | cut -f1)"
 
-echo "==> [2/2] 完成。上传命令:"
-echo "      scp ${OUT} root@<服务器IP>:/opt/"
-echo "      服务器端: 解压 + bash deploy-server.sh（见 deploy-to-server 技能）"
+echo "==> [2/2] Done. Upload with:"
+echo "      scp ${OUT} root@<server-ip>:/opt/"
+echo "      Server side: extract, then run deploy-server.sh (see the deploy-to-server skill)"

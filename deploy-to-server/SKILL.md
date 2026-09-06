@@ -1,152 +1,167 @@
 ---
 name: deploy-to-server
-description: 把**容器化的 Node 项目**（单端口、后端托管前端）打包并部署到 Linux 服务器。当用户对这类项目说"部署到服务器 / 上线 / 部署一下 / 发到生产"时使用；Dockerfile / docker-compose.yml 缺失时探测项目结构并生成（经用户确认）。若项目形态不符（非 Node、非容器化），说明本技能不适用而非硬套。项目特定值从 `deploy.config.json` 读取；首次使用先询问用户并生成配置。实际打包/上传/构建由本技能附属脚本执行（`scripts/` 目录）。
+description: Package and deploy a **containerized Node project** (single port, backend hosts frontend) to a Linux server. Use when the user says "deploy to server / go live / ship it / put it in production" about such a project. When Dockerfile / docker-compose.yml are missing, probe the project structure and generate them (user-confirmed). If the project shape doesn't fit (non-Node, non-containerized), say this skill doesn't apply rather than force it. Project-specific values come from `deploy.config.json`; on first use ask the user and generate the config. Actual package/upload/build is done by this skill's bundled scripts (`scripts/`).
 ---
 
 # Deploy to Server
 
-## 适用范围（先确认，不符合就说"本技能不适用"，不硬套）
+## Scope (confirm first — if it doesn't fit, say "this skill doesn't apply", don't force it)
 
-本技能适配**容器化部署的 Node 项目**（单容器单端口：后端托管前端产物，Linux + Docker Compose + SSH）。
-前提：
-- 项目是 **Node 系**（npm/workspaces，含 package-lock.json）
-- 目标是 Linux 服务器，SSH/scp 可达，服务器装 Docker + docker compose
+This skill fits **containerized Node projects** (single container, single port: backend serves the
+frontend build; Linux + Docker Compose + SSH). Prerequisites:
+- Project is **Node-based** (npm/workspaces, has package-lock.json)
+- Target is a Linux server reachable by SSH/scp, with Docker + docker compose installed
 
-**Dockerfile / docker-compose.yml 不要求项目自带**——缺失时本技能探测项目结构并生成（见第 0 步）。
+**Dockerfile / docker-compose.yml are not required** — when missing, this skill probes the project
+structure and generates them (step 0).
 
-**不适用的场景**（明确告诉用户，不硬套流程）：非 Node 项目、非容器化（裸机 systemd）、
-k8s/PaaS、多容器编排架构。形态不符时建议先 Docker 化改造或换用对应部署方式，而非本技能硬跑。
+**Does not apply to** (tell the user plainly, don't force the flow): non-Node projects,
+non-containerized (bare-metal systemd), k8s/PaaS, multi-container architectures. If the shape
+doesn't fit, recommend containerizing first or use the matching deployment route.
 
-执行方式：**本技能的 `scripts/` 目录包含可执行脚本**（`deploy-local.sh` 打包、`deploy-server.sh`
-服务器端部署）。这些脚本从配置读值、可直接运行；agent 也按它们执行并核对其输出。
+Execution: this skill's `scripts/` directory holds runnable scripts (`deploy-local.sh` packages,
+`deploy-server.sh` deploys server-side). They read values from config and run standalone; the agent
+also executes them and checks their output.
 
-## 配置（单一来源）
+## Config (single source)
 
-所有项目特定值都从项目根目录的 `deploy.config.json` 读取。**本技能内不写死任何项目值。**
+All project-specific values come from `deploy.config.json` in the project root. **No project value
+is hardcoded in this skill.**
 
 ```json
 {
-  "appName": "项目名（用于 tar 包名 / 服务器目录名）",
+  "appName": "project name (tar name / server dir name)",
   "server": {
-    "user": "SSH 用户名",
-    "host": "服务器 IP 或域名",
-    "targetDir": "服务器上的部署目录",
-    "port": "对外映射端口",
-    "containerName": "compose 服务/容器名（可省略，默认取 appName）"
+    "user": "SSH username",
+    "host": "server IP or domain",
+    "targetDir": "deploy dir on the server",
+    "port": "public mapped port",
+    "containerName": "compose service/container name (optional, defaults to appName)"
   },
-  "excludes": [
-    "打包时排除的路径（相对项目根）"
-  ],
-  "healthCheckPath": "健康检查路径（默认 /api/meta，按项目实际 API 配置）",
-  "envExample": "服务器端 .env 模板路径（可选）；无则跳过",
-  "envRequired": ["首次启动必填的 .env 键"],
-  "backup": { "dir": "备份目录（可选，如 /root/backups）", "keep": "保留份数（可选，如 14）" }
+  "excludes": ["paths to exclude when packaging (relative to project root)"],
+  "healthCheckPath": "health check path (default /api/meta, set per project API)",
+  "envExample": "path to server-side .env template (optional); skip if none",
+  "envRequired": ["required .env keys on first boot"],
+  "backup": { "dir": "backup dir (optional, e.g. /root/backups)", "keep": "keep count (optional, e.g. 14)" }
 }
 ```
 
-## 部署硬知识（所有项目通用）
+## Deployment gotchas (apply to every project)
 
-- **SQLite 容器必须 `seccomp:unconfined`**：Docker 默认 seccomp profile 会拦截 SQLite 写库所需
-  的系统调用，表现为主机侧 `disk I/O error`（容器日志 `PRAGMA journal_mode = WAL` 处崩溃）。
-  必须在 `docker-compose.yml` 加：
+- **SQLite containers need `seccomp:unconfined`**: Docker's default seccomp profile blocks the
+  syscalls SQLite needs to write its DB — symptom is `disk I/O error` (container crashes at
+  `PRAGMA journal_mode = WAL`). Add to `docker-compose.yml`:
   ```yaml
   security_opt:
     - seccomp:unconfined
   ```
-  不配置则应用持续重启（`Restarting (1)`）。这是 Node + SQLite 在 Docker 里的既定坑。
-- 多阶段 Dockerfile 必须把**后端源码 COPY 进任一构建阶段**（`COPY backend backend`），否则
-  运行时阶段 `COPY --from=...` 拷到的是空目录，报 `Cannot find module '/app/backend/src/index.js'`。
-- 容器内监听用 `localhost`/容器端口，**宿主机验证要走映射端口**（`host:container` 的 host 侧）。
-- 云服务器（腾讯云/阿里云等）公网访问还受**控制台安全组**限制——系统防火墙放行不够，需用户
-  在云控制台放行端口。
+  Without it the app keeps restarting (`Restarting (1)`). Known Node + SQLite-on-Docker trap.
+- A multi-stage Dockerfile must **COPY the backend sources into a build stage** (`COPY backend
+  backend`), or the runtime stage's `COPY --from=...` copies an empty dir → `Cannot find module
+  '/app/backend/src/index.js'`.
+- The container listens on `localhost`/its own port; **verify from the host via the mapped port**
+  (the `host` side of `host:container`).
+- Cloud servers (Tencent/Aliyun/…) also gate public access by a **console security group** —
+  opening the system firewall is not enough; the user must open the port in the cloud console.
 
-## 流程
+## Flow
 
-### 0. 检查并生成 Dockerfile / docker-compose.yml
+### 0. Check and generate Dockerfile / docker-compose.yml
 
-- **已存在** → 核对形态符合（Node 多阶段/单阶段、`seccomp:unconfined`、单端口、`COPY` 后端源码）；
-  不符或缺关键项（如 SQLite 却无 seccomp）→ 提示并按需重生成。
-- **缺失** → 探测项目结构后生成：运行
-  `node <skill目录>/scripts/gen-dockerfiles.js <项目根> <host端口>`。
-  脚本自动探测：单仓/单包（workspaces、frontend+backend 目录）、Node 版本（engines →
-  回退 node:24）、后端入口（main → src/index.js）、前端目录；生成结果内置硬知识
-  （seccomp、多阶段 COPY 后端、单端口）。
-- **生成/改动后**：展示 Dockerfile + docker-compose.yml 给用户**确认**（容器名、端口、
-  数据目录挂载），用户认可才继续。探测不可靠的点（如非标准目录布局）生成前先问用户。
+- **Already present** → verify they fit (Node single/multi-stage, `seccomp:unconfined`, single
+  port, `COPY` of backend sources); if missing key bits (e.g. SQLite without seccomp), flag and
+  regenerate as needed.
+- **Missing** → probe the project structure and generate: run
+  `node <skill dir>/scripts/gen-dockerfiles.js <project root> <host port>`.
+  The script auto-detects: monorepo vs single package (workspaces, frontend+backend dirs), Node
+  version (engines → fallback node:24), backend entry (main → src/index.js), frontend dir; output
+  embeds the gotchas (seccomp, multi-stage COPY backend, single port).
+- **After generating/changing**: show the user the Dockerfile + docker-compose.yml for **confirmation**
+  (container name, port, data mount) before continuing. Ask before generating when a probe point is
+  unreliable (e.g. non-standard layout).
 
-**完成判据**：Dockerfile 与 docker-compose.yml 就位且用户已确认；未确认不进入部署。
+**Completion**: Dockerfile and docker-compose.yml in place and user-confirmed; do not deploy before
+confirmation.
 
-### 1. 读取或建立配置
+### 1. Read or create config
 
-- `deploy.config.json` 存在 → 读取，所有后续步骤使用其中的值。
-- **不存在 → 停下来问用户**（不要猜）：appName、服务器 user/host/端口/目标目录、
-  打包排除项（可给默认建议：node_modules、.git、*.log、.env、dist、data）。
-  拿到值后**写入 `deploy.config.json`**（单一配置源，之后所有部署复用）。
-  同时生成/保留 `.env.example`（服务器端环境变量模板，见步骤 4）。
+- `deploy.config.json` exists → read it; all later steps use its values.
+- **Missing → stop and ask the user** (don't guess): appName, server user/host/port/targetDir,
+  package excludes (defaults you can suggest: node_modules, .git, *.log, .env, dist, data).
+  Write the values into `deploy.config.json` (single source; every later deploy reuses it).
+  Also create/keep `.env.example` (server-side env template, see step 4).
 
-**完成判据**：`deploy.config.json` 就位且包含全部所需值；缺失必填项时已询问用户补齐。
+**Completion**: `deploy.config.json` in place with all needed values; missing required values asked
+of the user.
 
-### 2. 打包
+### 2. Package
 
-运行 `scripts/deploy-local.sh`（按配置的 appName/excludes 生成 `${appName}-deploy.tar.gz`）。
-Windows 下用 Git Bash 或 PowerShell 的 tar 执行同一套排除参数。
+Run `scripts/deploy-local.sh` (produces `${appName}-deploy.tar.gz` per appName/excludes). On Windows
+run the same excludes with Git Bash or PowerShell tar.
 
-**完成判据**：tar 包生成；`tar -tzf` 能列出内容且不含 excludes 中的路径。
+**Completion**: tar created; `tar -tzf` lists content without any excludes path.
 
-### 3. 上传并解压
+### 3. Upload and extract
 
 ```powershell
 scp "${appName}-deploy.tar.gz" "${user}@${host}:/opt/"
 ssh "${user}@${host}" "sudo mkdir -p ${targetDir} && sudo tar -xzf /opt/${appName}-deploy.tar.gz -C ${targetDir}"
 ```
 
-> Git Bash 下 ssh 命令含 `/opt/...` 绝对路径时，加 `MSYS_NO_PATHCONV=1` 前缀避免路径转换。
+> Under Git Bash, prefix `MSYS_NO_PATHCONV=1` when an ssh command contains `/opt/...` absolute paths,
+> to avoid path rewriting.
 
-**完成判据**：ssh 到服务器 `ls ${targetDir}` 能看到源码（Dockerfile、package.json 等）。
+**Completion**: `ls ${targetDir}` over ssh shows the sources (Dockerfile, package.json, etc.).
 
-### 4. 配置环境变量（首次）
+### 4. Configure env vars (first time)
 
-服务器上若没有 `.env`：
-- 有 `envExample` → `cp ${envExample} .env`
-- 逐个处理 `envRequired`：**随机生成的键用 `openssl rand -hex 32` 生成**；密码类询问用户
-  （或生成后告知）；生产占位值拒绝保留。
-- 已有 `.env` → 保留，不覆盖。
+If there's no `.env` on the server:
+- Have `envExample` → `cp ${envExample} .env`
+- Handle each `envRequired` key: **randomly generated keys use `openssl rand -hex 32`**; password
+  keys ask the user (or generate and tell them); refuse to keep production placeholders.
+- `.env` already exists → keep it, don't overwrite.
 
-**完成判据**：`.env` 存在且 `envRequired` 中的每个键都有非占位值。
+**Completion**: `.env` exists and every `envRequired` key holds a non-placeholder value.
 
-### 5. 构建并启动
+### 5. Build and start
 
 ```powershell
 ssh "${user}@${host}" "cd ${targetDir} && docker compose up -d --build"
 ```
 
-**完成判据**：`docker compose ps` 显示服务运行（healthy/runs），**不是 `Restarting`**；
-若 Restarting，查 `docker logs <container>` 并按"部署硬知识"排查（常见：seccomp、模块缺失）。
+**Completion**: `docker compose ps` shows the service running (healthy/runs), **not `Restarting`**;
+if Restarting, check `docker logs <container>` and debug against "Deployment gotchas" (common:
+seccomp, missing module).
 
-### 6. 验证与收尾
+### 6. Verify and wrap up
 
 ```powershell
-# 健康检查：经映射端口（host 侧），不走容器内 localhost
+# Health check via the mapped port (host side), not container-localhost
 ssh "${user}@${host}" "curl -sf http://127.0.0.1:${port}/api/meta && echo OK"
-# 系统防火墙放行（云服务器还需控制台安全组放行，提醒用户）
+# Open the system firewall (cloud servers also need the console security group — remind the user)
 ssh "${user}@${host}" "sudo ufw allow ${port}/tcp || sudo firewall-cmd --permanent --add-port=${port}/tcp && sudo firewall-cmd --reload"
 ```
 
-- 报告访问地址：`http://${host}:${port}`；若公网不通但本机通，**提醒用户放行云安全组**。
-- 如有安全收尾（删 demo 账号、前置 HTTPS），逐条提醒用户
+- Report the URL: `http://${host}:${port}`; if public access fails but local works, **remind the
+  user to open the cloud security group**.
+- Any security wrap-up (delete demo accounts, front with HTTPS) — list it for the user.
 
-**完成判据**：健康检查经映射端口通过、端口已放行、访问地址已报告给用户（含安全组提醒）。
-**收尾（必须）**：部署成功后**删除本地 `${appName}-deploy.tar.gz`**（打包残留不留在项目根）；
-仅当部署失败时保留该包以便排查。
+**Completion**: health check passes via the mapped port, the port is open, the URL is reported to
+the user (including the security-group reminder).
+**Cleanup (required)**: after a successful deploy **delete the local `${appName}-deploy.tar.gz`**
+(no packaging residue in the project root); keep it only when the deploy failed, for debugging.
 
-## 原则
+## Principles
 
-- **值来自配置，不来自猜测**：任何项目特定值（路径/端口/IP）只用 `deploy.config.json` 里的，
-  缺失就问，不推断。
-- 服务器端密钥/密码**永不出现在对话明文**（用 `<REDACTED>` 表示已设置）。
-- 二次部署（更新代码）：跳过步骤 4（保留 .env），直接打包 → 上传 → `up -d --build`。
-- **备份/恢复是项目特有约定**：技能默认只保证部署/升级可重复。用户要求备份时，询问备份目录与
-  保留份数（或按 `deploy.config.json` 可选字段 `backup`：`{dir, keep}` 的既有配置），在服务器上
-  配一条 cron 定时打包数据目录；恢复 = 停容器 → 解包回数据目录 → 起容器。备份目录与 cron 参数
-  不写死在技能里。
-- 本技能是**可复用部署知识权威**：跨项目用同一套流程，项目差异全在 `deploy.config.json`。
+- **Values come from config, not from guessing**: any project-specific value (path/port/IP) comes
+  only from `deploy.config.json`; when missing, ask — never infer.
+- Server-side secrets/passwords **never appear in plaintext in the conversation** (show `<REDACTED>`
+  once set).
+- Redeploy (code update): skip step 4 (keep `.env`), just package → upload → `up -d --build`.
+- **Backup/restore is a project-specific convention**: the skill only guarantees repeatable
+  deploy/upgrade. When the user asks for backup, ask the backup dir and retention count (or use the
+  `backup` optional field `{dir, keep}` in `deploy.config.json`), set up a cron that tars the data
+  dir; restore = stop container → extract back into the data dir → start container. Backup dir and
+  cron params are not hardcoded in the skill.
+- This skill is the **reusable deployment knowledge authority**: one flow across projects; project
+  differences all live in `deploy.config.json`.

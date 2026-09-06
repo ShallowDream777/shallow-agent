@@ -1,79 +1,93 @@
 ---
 name: init-agent-project
-description: 把任意项目初始化为「Agent 驱动」项目：引入 auto-mattpocock + deploy-to-server 两个技能到项目的 .agents/skills/，询问技术栈，并按项目名/技术栈生成 AGENTS.md、README（agent 引导段）与 deploy.config.json 雏形。当用户说「初始化这个项目 / 项目接入 agent 流程 / 搭建 agent 驱动项目 / 让这个项目能用 auto-mattpocock 和部署」时使用。可复用：技能自带两份技能的副本与模板，拷到任何项目即用。
+description: Initialize any project as an "agent-driven" project: copy the auto-mattpocock + deploy-to-server skills into the project's .agents/skills/, ask the tech stack, and scaffold AGENTS.md, README (agent-guidance section) and a deploy.config.json draft per project name/stack. Use when the user says "initialize this project / wire this project up with the agent flow / set up an agent-driven project". Reusable: the skill bundles both skills and templates, so it works on any project as-is.
 ---
 
 # Init Agent Project
 
-把任意（新或现有）项目初始化成「Agent 驱动」形态：带 `auto-mattpocock`（迭代路由）与
-`deploy-to-server`（一键部署）两个技能，配上让 agent 知道「本项目由技能驱动」的 AGENTS.md /
-README / deploy.config.json。
+Turn any (new or existing) project into an "agent-driven" shape: ship it with
+`auto-mattpocock` (iteration router) and `deploy-to-server` (one-click deploy), plus an
+AGENTS.md / README / deploy.config.json that tell the agent this project runs on these skills.
 
-## 它做什么（三步）
+## What it does (three steps)
 
-1. **引入技能**：把本技能 `resources/skills/` 下的 auto-mattpocock、deploy-to-server 拷到目标
-   项目的 `.agents/skills/`（不存在则创建）。**副本是本技能携带的**——技能更新时重新拷贝即可。
-2. **询问技术栈**：问项目名、对话默认语言、前端框架、后端框架、数据库、对外端口
-   （一次简短问卷，不问设计细节——技术澄清交给后续 auto-mattpocock 的 grill 流程）。
-3. **生成引导文件**：按答案填模板——
-   - `AGENTS.md`（Iteration workflow 指 auto-mattpocock、Deployment 指 deploy-to-server、Tech stack）
-   - `README.md`（agent 驱动说明段 + 一键部署段 + 技术栈 + 目录速查）
-   - `deploy.config.json` 雏形（appName/端口已填，server 空待首次部署问）
+1. **Install the skills**: copy `auto-mattpocock` and `deploy-to-server` from this skill's
+   `resources/skills/` into the target project's `.agents/skills/` (create it if missing). **The
+   copies are bundled with this skill** — re-copy to refresh them when the skills update.
+2. **Ask the tech stack**: project name, conversation default language, frontend framework,
+   backend framework, database, public port (a short questionnaire; no design detail — that is left
+   to auto-mattpocock's grill flow later).
+3. **Scaffold the guidance files**: fill the templates with the answers —
+   - `AGENTS.md` (Iteration workflow → auto-mattpocock, Deployment → deploy-to-server, Tech stack)
+   - `README.md` (agent-driven section + one-click deploy section + tech stack + dir map)
+   - `deploy.config.json` draft (appName/port filled; server empty until first deploy asks)
 
-## 使用
+## Usage
 
-### 0. 确认目标项目
+### 0. Confirm the target project
 
-- 问清楚目标项目根目录（默认当前目录）。注意：**本技能拷给别人的是"模板"，运行对象是目标项目**。
-- 目标项目的 `.agents/skills/` 若已有同名技能 → 询问是否覆盖（默认保留现有，只补缺失）。
+- Clarify the target project root (default: current dir). Note: **what this skill hands to other
+  projects are templates; the thing being run on is the target project.**
+- If the target's `.agents/skills/` already has a same-named skill → ask whether to overwrite
+  (default: keep existing, only fill gaps).
 
-### 1. 引入技能
+### 1. Install the skills
 
-从 `resources/skills/` 复制 auto-mattpocock、deploy-to-server 到目标 `.agents/skills/`：
-（保留目录内全部文件：SKILL.md、agents/、scripts/ 等）
+Copy `auto-mattpocock` and `deploy-to-server` from `resources/skills/` into the target
+`.agents/skills/` (keep every file in each dir: SKILL.md, agents/, scripts/, etc.).
 
-**完成判据**：目标项目 `.agents/skills/{auto-mattpocock,deploy-to-server}/SKILL.md` 均存在。
+**Completion**: both `.agents/skills/{auto-mattpocock,deploy-to-server}/SKILL.md` exist in the target.
 
-### 2. 询问技术栈（简短问卷）
+### 2. Ask the tech stack (short questionnaire)
 
-逐项给**预设选项让用户选**（每项给推荐 + 常用可选项），用户选"其他/自定义"才自由输入；
-用默认值即可时直接接受，不逐项追问。带默认建议的项不必等答案——用户没异议就用默认：
+For each item, present **preset options to pick from** (each with a recommendation and common
+choices); free-text only if the user picks "Other/custom". Accept the default when the user is fine
+with it; don't chase every answer. Items with a recommended default don't need a reply — use the
+default unless the user objects:
 
-- **项目名**（自由输入；用于 README 标题 / deploy.config appName / AGENTS 文件名）
-- **对话默认语言**（选项：中文 / English；默认中文）
-- **前端框架**（选项：Vue3+Vite / React+Next / 无（纯后端） / 自定义）
-- **后端框架**（选项：Express / Fastify / NestJS / 无（纯前端/静态） / 自定义）
-- **数据库**（选项：SQLite / PostgreSQL / MySQL / 无 / 自定义）
-- **对外端口**（选项：8080 / 3000 / 80 / 自定义；默认 8080）
+- **Project name** (free text; used for README title / deploy.config appName / AGENTS file name)
+- **Conversation default language** (options: Chinese / English; default English)
+- **Frontend framework** (options: Vue3+Vite / React+Next / none (backend-only) / custom)
+- **Backend framework** (options: Express / Fastify / NestJS / none (frontend-only/static) / custom)
+- **Database** (options: SQLite / PostgreSQL / MySQL / none / custom)
+- **Public port** (options: 8080 / 3000 / 80 / custom; default 8080)
 
-**交互方式**：逐项呈现"选项列表 + 推荐标注"，用户可：直接选一项 / 说"默认"接受推荐 /
-自己输入选项外的值。**不是开放文本框**——先给选择，用户不愿选才落输入。
+**Interaction**: present each as "options + recommended mark"; the user may pick one / say "default"
+to accept the recommendation / type a value outside the options. **Not an open text box** — offer
+choices first; fall back to free input only when the user declines to pick.
 
-**完成判据**：上述值齐全（每项要么选中一个预设、要么用户给了自定义值、要么明示用默认）。
+**Completion**: all values settled — each is either a picked preset, a user-supplied custom value, or
+explicitly the default.
 
-### 3. 生成引导文件
+### 3. Scaffold the guidance files
 
-用 `resources/templates/` 里的模板 + 步骤 2 的答案填出三份文件，写入目标项目根：
+Fill the three files from `resources/templates/` with step 2's answers and write them to the target
+project root:
 
-- `AGENTS.md`（模板替换 `{{language}}`、`{{techstack_lines}}`）
-- `README.md`（替换 `{{projectName}}`、`{{one_line_description}}`、`{{techstack_lines}}`；
-  若目标已有 README，**合并而非覆盖**——保留其原内容，把 agent 引导段/部署段/目录速查补进去）
-- `deploy.config.json`（替换 `{{appName}}`、`{{port}}`）
+- `AGENTS.md` (replace `{{language}}`, `{{techstack_lines}}`)
+- `README.md` (replace `{{projectName}}`, `{{one_line_description}}`, `{{techstack_lines}}`; if the
+  target already has a README, **merge rather than overwrite** — keep its original content and add
+  the agent/one-click-deploy/dir-map sections)
+- `deploy.config.json` (replace `{{appName}}`, `{{port}}`)
 
-已有同名文件时：AGENTS.md 有 `## Agent skills`/Iteration 内容则提示是否合并；README 合并；
-deploy.config.json 已存在则不动。
+If a same-named file exists: AGENTS.md with `## Agent skills`/Iteration content → ask whether to
+merge; README → merge; deploy.config.json already exists → leave it.
 
-**完成判据**：三份文件写入目标项目；有冲突处已征询用户。
+**Completion**: the three files are written to the target project; conflicts were put to the user.
 
-### 4. 报告与下一步
+### 4. Report and next steps
 
-- 报告：哪些技能已引入、哪三份文件已生成/合并。
-- 下一步提示：首次提需求 agent 会走 auto-mattpocock（必要时触发它的 setup 流程产出
-  docs/agents/）；首次部署会问服务器信息补全 deploy.config.json。
+- Report: which skills were installed, which three files were created/merged.
+- Next steps: on the first feature request the agent will run auto-mattpocock (firing its setup flow
+  to produce docs/agents/ when needed); the first deploy asks for server info to complete
+  deploy.config.json.
 
-## 原则
+## Principles
 
-- **技能副本随引子分发**：本技能是 auto-mattpocock + deploy-to-server 的分发载体——它们更新时，
-  把新版本拷回 `resources/skills/` 即完成引子同步。
-- **模板可编辑**：模板在 `resources/templates/`，按团队口味改（AGENTS 措辞、README 结构）。
-- **合并不覆盖**：目标项目已有 README/AGENTS.md 时，补内容而非整份覆盖。
+- **Skill copies ship with this skill**: this skill is the distribution vehicle for
+  auto-mattpocock + deploy-to-server — when they update, copy the new versions back into
+  `resources/skills/` to keep this skill in sync.
+- **Templates are editable**: they live in `resources/templates/`; tune them to taste (AGENTS
+  wording, README structure).
+- **Merge, don't overwrite**: when the target already has README/AGENTS.md, add content rather than
+  replacing the file wholesale.
