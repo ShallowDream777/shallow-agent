@@ -1,15 +1,16 @@
 ---
 name: init-agent-project
-description: Initialize any project as an "agent-driven" project: copy the auto-mattpocock + deploy-to-server skills into the project's .agents/skills/, ask the tech stack, scaffold AGENTS.md / README / deploy.config.json, then run auto-mattpocock's initialization sequence (read its SKILL.md and follow it). Use when the user says "initialize this project / wire this project up with the agent flow / set up an agent-driven project". Reusable: the skill bundles both skills and templates, so it works on any project as-is.
+description: Initialize any project as an "agent-driven" project: copy the auto-mattpocock + deploy-to-server skills into the project's .agents/skills/, ask the tech stack and record it durably (write CONTEXT.md + a stack field in deploy.config.json), scaffold a skeleton per the stack when the target is empty, write AGENTS.md / README / deploy.config.json, then run auto-mattpocock's initialization sequence (read its SKILL.md and follow it). Use when the user says "initialize this project / wire this project up with the agent flow / set up an agent-driven project". Reusable: the skill bundles both skills and templates, so it works on any project as-is.
 ---
 
 # Init Agent Project
 
 Turn any (new or existing) project into an "agent-driven" shape: ship it with
-`auto-mattpocock` (iteration router) and `deploy-to-server` (one-click deploy), plus an
-AGENTS.md / README / deploy.config.json that tell the agent this project runs on these skills.
+`auto-mattpocock` (iteration router) and `deploy-to-server` (one-click deploy), plus AGENTS.md /
+README / deploy.config.json that tell the agent this project runs on these skills. It asks the
+tech stack once, records it durably, and scaffolds the project skeleton if the target is empty.
 
-## What it does (four steps)
+## What it does (five steps)
 
 1. **Install the skills**: copy `auto-mattpocock` and `deploy-to-server` from this skill's
    `resources/skills/` into the target project's `.agents/skills/` (create it if missing). **The
@@ -17,11 +18,11 @@ AGENTS.md / README / deploy.config.json that tell the agent this project runs on
 2. **Ask the tech stack**: project name, conversation default language, frontend framework,
    backend framework, database, public port (a short questionnaire; no design detail — that is left
    to auto-mattpocock's grill flow later).
-3. **Scaffold the guidance files**: fill the templates with the answers —
-   - `AGENTS.md` (Iteration workflow → auto-mattpocock, Deployment → deploy-to-server, Tech stack)
-   - `README.md` (agent-driven section + one-click deploy section + tech stack + dir map)
-   - `deploy.config.json` draft (appName/port filled; server empty until first deploy asks)
-4. **Run auto-mattpocock's initialization** (step 4 below): it finishes setting up the repo and
+3. **Scaffold the project skeleton** (new empty target): create the directory structure and
+   package.json per the chosen stack (step 4 builds on the stack answers; see below).
+4. **Persist the stack + scaffold the guidance files**: write `CONTEXT.md` (records the stack for
+   later domain work), `AGENTS.md`, `README.md`, and `deploy.config.json` (incl. a `stack` field).
+5. **Run auto-mattpocock's initialization** (step 5 below): it finishes setting up the repo and
    asks what to work on.
 
 ## Usage
@@ -73,35 +74,59 @@ choices first; fall back to free input only when the user declines to pick.
 **Completion**: all values settled — each is either a picked preset, a user-supplied custom value, or
 explicitly the default.
 
-### 3. Scaffold the guidance files
+### 3. Scaffold the project skeleton (only if the target is empty/new)
+
+If the target project has no source yet (no frontend/backend dirs, no package.json), create a
+minimal runnable skeleton that matches the chosen stack, so "initialize this project" yields a real
+structure the agent can build on. Match the stack answers from step 2:
+
+- **Node frontend + backend** (e.g. Vue3+Vite + Express): a monorepo layout with `frontend/` and
+  `backend/`, root `package.json` with `workspaces`, and each package's `package.json` pinned to the
+  chosen framework.
+- **Backend-only / frontend-only / database-only**: the matching single-package layout.
+- Keep it minimal — a directory shape plus `package.json` (name, engines, scripts, the framework
+  dep). Do not over-scaffold; feature code comes later via auto-mattpocock.
+
+**If the target already has source**, skip this step (don't impose a layout on an existing project).
+
+**Completion**: the target has a skeleton matching the chosen stack (or it already had source and
+this was skipped).
+
+### 4. Persist the stack & scaffold the guidance files
 
 Fill the files from `resources/templates/` with step 2's answers and write them to the target
-project root. **Pick templates by the chosen language** (step 2's "conversation default language"):
+project root. **Pick language templates by the chosen language** (step 2's "conversation default
+language"):
 
-- **Chinese** → `AGENTS.zh.md`, `README.zh.md` (the whole document is produced in Chinese)
-- **English / other** → `AGENTS.md`, `README.md`
+- **Chinese** → `AGENTS.zh.md`, `README.zh.md`, `CONTEXT.zh.md`
+- **English / other** → `AGENTS.md`, `README.md`, `CONTEXT.md`
 - `deploy.config.json` is language-neutral (shared template)
 
-Files to write (using the language-matched templates):
+Files to write:
 
+- `CONTEXT.md` (records the stack + one-line description — the durable record later
+  domain-modeling / grill reads; replace `{{projectName}}`, `{{one_line_description}}`,
+  `{{techstack_lines}}`)
 - `AGENTS.md` (replace `{{language}}`, `{{techstack_lines}}`)
 - `README.md` (replace `{{projectName}}`, `{{one_line_description}}`, `{{techstack_lines}}`; if the
-  target already has a README, **merge rather than overwrite** — keep its original content and add
-  the agent/one-click-deploy/dir-map sections)
-- `deploy.config.json` (replace `{{appName}}`, `{{port}}`)
+  target already has a README, **merge rather than overwrite**)
+- `deploy.config.json` (replace `{{appName}}`, `{{port}}`, `{{frontend}}`, `{{backend}}`, `{{db}}` —
+  the `stack` field records the chosen frameworks so deploy can reuse them)
 
 If a same-named file exists: AGENTS.md with `## Agent skills`/Iteration content → ask whether to
-merge; README → merge; deploy.config.json already exists → leave it.
+merge; README → merge; CONTEXT.md already exists → ask whether to update the Tech stack; 
+deploy.config.json already exists → leave it.
 
-**Completion**: the three files are written to the target project; conflicts were put to the user.
+**Completion**: CONTEXT.md / AGENTS.md / README.md / deploy.config.json are written to the target
+project; conflicts were put to the user.
 
-### 4. Run auto-mattpocock's initialization
+### 5. Run auto-mattpocock's initialization
 
-The project now has the skills and scaffold. **Run `auto-mattpocock`'s initialization next** — read
-`auto-mattpocock/SKILL.md` and follow its initialization section top to bottom. It completes the
-repo setup and then asks the user what to work on (the user may stop there if undecided — the
-project is fully initialized either way). deploy.config.json's server fields stay empty until the
-first deploy asks for them.
+The project now has the skills, a skeleton (if new), and the recorded stack. **Run
+`auto-mattpocock`'s initialization next** — read `auto-mattpocock/SKILL.md` and follow its
+initialization section top to bottom. It completes the repo setup and then asks the user what to
+work on (the user may stop there if undecided — the project is fully initialized either way).
+deploy.config.json's server fields stay empty until the first deploy asks for them.
 
 **Completion**: auto-mattpocock's initialization ran (or the user explicitly deferred it); report
 what was installed/scaffolded and that the agent is now ready for requests.
