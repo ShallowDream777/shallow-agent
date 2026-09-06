@@ -61,8 +61,14 @@ explicitly the default.
 
 ### 3. Scaffold the guidance files
 
-Fill the three files from `resources/templates/` with step 2's answers and write them to the target
-project root:
+Fill the files from `resources/templates/` with step 2's answers and write them to the target
+project root. **Pick templates by the chosen language** (step 2's "conversation default language"):
+
+- **Chinese** → `AGENTS.zh.md`, `README.zh.md` (the whole document is produced in Chinese)
+- **English / other** → `AGENTS.md`, `README.md`
+- `deploy.config.json` is language-neutral (shared template)
+
+Files to write (using the language-matched templates):
 
 - `AGENTS.md` (replace `{{language}}`, `{{techstack_lines}}`)
 - `README.md` (replace `{{projectName}}`, `{{one_line_description}}`, `{{techstack_lines}}`; if the
@@ -88,6 +94,7 @@ merge; README → merge; deploy.config.json already exists → leave it.
   auto-mattpocock + deploy-to-server — when they update, copy the new versions back into
   `resources/skills/` to keep this skill in sync.
 - **Templates are editable**: they live in `resources/templates/`; tune them to taste (AGENTS
-  wording, README structure).
+  wording, README structure). Language pairs: `AGENTS.md`/`AGENTS.zh.md` and
+  `README.md`/`README.zh.md` — keep both sides in sync when editing wording.
 - **Merge, don't overwrite**: when the target already has README/AGENTS.md, add content rather than
   replacing the file wholesale.
