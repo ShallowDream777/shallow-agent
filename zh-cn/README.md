@@ -76,3 +76,8 @@ cp -r <技能目录>  <你的项目>/.agents/skills/
 - [deploy-to-server/SKILL.md](deploy-to-server/SKILL.md)
 - [init-agent-project/SKILL.md](init-agent-project/SKILL.md)
 - 各技能 `openai.yaml`（display_name / short_description 中文对照）
+
+## 迭代本仓库
+
+修改技能会把它分发到别的项目，所以改动必须保持三处同步：**英文主目录（权威）+ init-agent-project
+内嵌副本 + 本 zh-cn 中文镜像（只读）**。完整规则与改动清单见 [../CONTRIBUTING.md](../CONTRIBUTING.md)。

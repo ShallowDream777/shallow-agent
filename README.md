@@ -71,6 +71,13 @@ Prerequisite: an agent environment that loads `SKILL.md` files from `.agents/ski
 | "Deploy to server" | runs `deploy-to-server` |
 | "Initialize this project" | runs `init-agent-project` |
 
+## Iterating on this repo
+
+Changing a skill ships it into other projects, so edits must keep the English master, the
+`init-agent-project` bundled copies, and the `zh-cn/` Chinese mirror in sync — **English is the
+authoritative source; `zh-cn/` is a read-only mirror**. See [CONTRIBUTING.md](CONTRIBUTING.md) for
+the sync rules and change checklist.
+
 ## License
 
 MIT
