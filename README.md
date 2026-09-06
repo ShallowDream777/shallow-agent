@@ -19,20 +19,32 @@ Mechanics, scope and prerequisites of each skill live in its own `SKILL.md`.
 
 ## Install
 
-### One-liner: install the repo, then initialize your project
+### One-liner: hand this to your agent
+
+In any project, tell your agent:
+
+> **Install the skills from https://github.com/ShallowDream777/shallow-agent, then initialize
+> this project.**
+
+The agent (which can run shell commands and reach GitHub) does this on its own:
+
+1. `git clone https://github.com/ShallowDream777/shallow-agent` into a temp dir
+2. run `bash shallow-agent/install.sh` to copy the three skills
+   (`auto-mattpocock`, `deploy-to-server`, `init-agent-project`) to user-level `~/.agents/skills/`
+3. tell you to start a new session (or refresh) so the agent discovers the skills
+4. run `init-agent-project`: copy the two skills into this project's `.agents/skills/`, ask the
+   tech stack (option-based), and scaffold `AGENTS.md`, `README.md` (agent-guidance) and
+   `deploy.config.json`
+
+> If your agent cannot clone (no shell / no GitHub access), fall back to the manual steps below.
+
+### Manual steps (no agent)
 
 ```bash
-# 1. clone and install (copies the three skills to user-level ~/.agents/skills/)
 git clone https://github.com/ShallowDream777/shallow-agent.git
-bash shallow-agent/install.sh
-
-# 2. in any project, tell your agent:
-#    "initialize this project"
+bash shallow-agent/install.sh          # user-level: ~/.agents/skills/
+# then tell your agent: "initialize this project"
 ```
-
-The agent then runs `init-agent-project`: it copies the two skills into the project's
-`.agents/skills/`, asks the tech stack (option-based), and scaffolds `AGENTS.md`,
-`README.md` (agent-guidance) and `deploy.config.json`.
 
 ### Install options for `install.sh`
 

@@ -19,19 +19,30 @@ Linux 服务器、一键初始化进新项目。技能内**零写死**——项�
 
 ## 快速安装
 
-### 一句话：安装仓库并初始化你的项目
+### 一句话：把这句话交给你的 agent
+
+在任意项目中，对你的 agent 说：
+
+> **从 https://github.com/ShallowDream777/shallow-agent 安装技能，然后初始化这个项目。**
+
+agent（能跑 shell 命令、能访问 GitHub）会自己完成：
+
+1. `git clone https://github.com/ShallowDream777/shallow-agent` 到临时目录
+2. 运行 `bash shallow-agent/install.sh`，把三个技能（`auto-mattpocock`、`deploy-to-server`、
+   `init-agent-project`）拷到用户级 `~/.agents/skills/`
+3. 提示你开新会话（或刷新），让 agent 能发现这些技能
+4. 运行 `init-agent-project`：把两个技能拷进本项目的 `.agents/skills/`、选项式询问技术栈、
+   生成 `AGENTS.md`、`README.md`（agent 引导段）与 `deploy.config.json`
+
+> 如果 agent 无法 clone（没有 shell / 访问不了 GitHub），退回下面的手动步骤。
+
+### 手动步骤（不用 agent）
 
 ```bash
-# 1. 克隆并安装（把三个技能拷到用户级 ~/.agents/skills/）
 git clone https://github.com/ShallowDream777/shallow-agent.git
-bash shallow-agent/install.sh
-
-# 2. 在任意项目中，对你的 agent 说：
-#    「初始化这个项目」
+bash shallow-agent/install.sh           # 用户级：~/.agents/skills/
+# 然后对你的 agent 说: 「初始化这个项目」
 ```
-
-agent 会运行 `init-agent-project`：把两个技能拷进项目的 `.agents/skills/`、选项式询问技术栈、
-生成 `AGENTS.md`、`README.md`（agent 引导段）与 `deploy.config.json`。
 
 ### install.sh 参数
 
