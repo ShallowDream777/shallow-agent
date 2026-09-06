@@ -9,3 +9,6 @@ node_modules/
 # Agent config that should stay project-local
 deploy.config.json
 *.log
+
+# ...but this repo's own distribution template must be tracked
+!init-agent-project/resources/templates/deploy.config.json

@@ -12,10 +12,6 @@
   - **spec 与原型冲突** → 停下请用户裁决，绝不自己选边。
   - **实现偏离清晰 spec/原型** → 直接修代码，改完对照 spec/原型验证。
 
-## Tech stack（技术栈）
-
-{{techstack_lines}}
-
 ## Agent skills
 
 `docs/agents/*.md` 记录了 issue-tracker / triage / domain 约定（首次使用时由 setup 流程产出）。

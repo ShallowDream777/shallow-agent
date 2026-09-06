@@ -1,0 +1,24 @@
+{
+  "appName": "{{appName}}",
+  "server": {
+    "user": "",
+    "host": "",
+    "targetDir": "/opt/{{appName}}",
+    "port": "{{port}}",
+    "containerName": "{{appName}}"
+  },
+  "excludes": [
+    "node_modules",
+    ".npm-cache",
+    ".git",
+    ".scratch",
+    ".agents",
+    "backend/data",
+    "frontend/dist",
+    "*.log",
+    ".env"
+  ],
+  "envExample": null,
+  "envRequired": [],
+  "backup": { "dir": "", "keep": 0 }
+}

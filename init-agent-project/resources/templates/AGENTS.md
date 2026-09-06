@@ -12,10 +12,6 @@
   - If the **spec and prototype conflict**, stop and ask the user to arbitrate — never pick a side yourself.
   - If the **implementation deviates** from a clear spec/prototype, fix the code directly, then verify against the spec.
 
-## Tech stack
-
-{{techstack_lines}}
-
 ## Agent skills
 
 See `docs/agents/*.md` for issue-tracker / triage / domain conventions (produced by the setup flow on first use).
