@@ -1,0 +1,5 @@
+interface:
+  display_name: "Deploy to Server"
+  short_description: "Package and auto-deploy the project to a Linux server via Docker Compose"
+policy:
+  allow_implicit_invocation: false

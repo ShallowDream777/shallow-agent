@@ -1,0 +1,5 @@
+interface:
+  display_name: "Init Agent Project"
+  short_description: "Initialize any project as agent-driven: install auto-mattpocock + deploy-to-server, set the tech stack, and scaffold AGENTS.md / README / deploy.config"
+policy:
+  allow_implicit_invocation: false

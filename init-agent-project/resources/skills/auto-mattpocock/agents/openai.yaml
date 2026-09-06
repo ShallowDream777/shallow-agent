@@ -1,0 +1,5 @@
+interface:
+  display_name: "Auto Matt-Pocock"
+  short_description: "Route any conversation into the Matt-Pocock engineering workflow (spec + tickets)"
+policy:
+  allow_implicit_invocation: false

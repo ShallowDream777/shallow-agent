@@ -1,0 +1,11 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+.npm-cache/
+
+# Agent config that should stay project-local
+deploy.config.json
+*.log
