@@ -1,6 +1,6 @@
 ---
 name: init-agent-project
-description: 把任意项目初始化为「Agent 驱动」项目：把 auto-mattpocock + deploy-to-server 两个技能拷进项目的 .agents/skills/，询问技术栈，按项目名/技术栈生成 AGENTS.md、README（agent 引导段）与 deploy.config.json 雏形，然后**交给 auto-mattpocock 自己的初始化流程**（它会装自己的依赖技能、配置仓库约定、并主动 grill 问要做什么）。本技能只负责放技能和搭骨架——不知道 setup-matt-pocock-skills 的存在。当用户说「初始化这个项目 / 项目接入 agent 流程 / 搭建 agent 驱动项目」时使用。可复用：技能自带两份技能的副本与模板，拷到任何项目即用。
+description: 把任意项目初始化为「Agent 驱动」项目：把 auto-mattpocock + deploy-to-server 两个技能拷进项目的 .agents/skills/，询问技术栈，按项目名/技术栈生成 AGENTS.md、README（agent 引导段）与 deploy.config.json 雏形，然后运行 auto-mattpocock 的初始化（读它的 SKILL.md 按其执行）。当用户说「初始化这个项目 / 项目接入 agent 流程 / 搭建 agent 驱动项目」时使用。可复用：技能自带两份技能的副本与模板，拷到任何项目即用。
 ---
 
 # Init Agent Project
@@ -19,7 +19,7 @@ README / deploy.config.json，最后把初始化交给 auto-mattpocock。
    - `AGENTS.md`（Iteration workflow 指 auto-mattpocock、Deployment 指 deploy-to-server、Tech stack）
    - `README.md`（agent 驱动说明段 + 一键部署段 + 技术栈 + 目录速查）
    - `deploy.config.json` 雏形（appName/端口已填，server 空待首次部署问）
-4. **交给 auto-mattpocock 初始化**（见下方第 4 步）——本技能到此结束，之后由 auto 接管。
+4. **运行 auto-mattpocock 的初始化**（见下方第 4 步）——它完成仓库的收尾配置并问要做什么。
 
 ## 使用
 
@@ -73,18 +73,13 @@ deploy.config.json 已存在则不动。
 
 **完成判据**：三份文件写入目标项目；有冲突处已征询用户。
 
-### 4. 交给 auto-mattpocock 的初始化
+### 4. 运行 auto-mattpocock 的初始化
 
-项目现在有了技能和骨架。**下一步执行 auto-mattpocock 的初始化序列**——读 `auto-mattpocock/SKILL.md`
-并按它的 Preflight 从头执行：它会安装自己的 mattpocock 依赖技能、配置仓库的 issue tracker /
-triage / domain 约定（写 `docs/agents/`、AGENTS.md 的 Agent skills 块），然后**主动 grill 问用户
-现在想做什么**（用户没想好可以中止——初始化到此也已完成）。
+项目现在有了技能和骨架。**接下来运行 `auto-mattpocock` 的初始化**——读 `auto-mattpocock/SKILL.md`
+并按它的初始化章节从头执行。它会完成仓库的收尾配置，然后**问用户现在想做什么**（用户没想好
+可以中止——项目到这也已初始化完成）。`deploy.config.json` 的 server 字段留空，直到首次部署时再问。
 
-- **本技能不负责 setup-matt-pocock-skills 或仓库配置细节**——那些属于 auto-mattpocock。
-  init-agent-project 的职责到"放好技能和骨架、把控制权交给 auto"为止。
-- `deploy.config.json` 的 server 字段留空，直到首次部署时再问。
-
-**完成判据**：auto-mattpocock 的 Preflight 已执行（或用户明确推迟）；报告已安装/生成了什么，
+**完成判据**：auto-mattpocock 的初始化已执行（或用户明确推迟）；报告已安装/生成了什么，
 并说明 agent 现在可以接受需求了。
 
 ## 原则

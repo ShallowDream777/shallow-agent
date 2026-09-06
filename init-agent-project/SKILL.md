@@ -1,6 +1,6 @@
 ---
 name: init-agent-project
-description: Initialize any project as an "agent-driven" project: copy the auto-mattpocock + deploy-to-server skills into the project's .agents/skills/, ask the tech stack, scaffold AGENTS.md / README / deploy.config.json, then hand off to auto-mattpocock's own initialization (it installs its dependency skills, configures the repo conventions, and grills what to build now). This skill only places skills and scaffold — it does not know about setup-matt-pocock-skills. Use when the user says "initialize this project / wire this project up with the agent flow / set up an agent-driven project". Reusable: the skill bundles both skills and templates, so it works on any project as-is.
+description: Initialize any project as an "agent-driven" project: copy the auto-mattpocock + deploy-to-server skills into the project's .agents/skills/, ask the tech stack, scaffold AGENTS.md / README / deploy.config.json, then run auto-mattpocock's initialization sequence (read its SKILL.md and follow it). Use when the user says "initialize this project / wire this project up with the agent flow / set up an agent-driven project". Reusable: the skill bundles both skills and templates, so it works on any project as-is.
 ---
 
 # Init Agent Project
@@ -9,7 +9,7 @@ Turn any (new or existing) project into an "agent-driven" shape: ship it with
 `auto-mattpocock` (iteration router) and `deploy-to-server` (one-click deploy), plus an
 AGENTS.md / README / deploy.config.json that tell the agent this project runs on these skills.
 
-## What it does (three steps)
+## What it does (four steps)
 
 1. **Install the skills**: copy `auto-mattpocock` and `deploy-to-server` from this skill's
    `resources/skills/` into the target project's `.agents/skills/` (create it if missing). **The
@@ -21,6 +21,8 @@ AGENTS.md / README / deploy.config.json that tell the agent this project runs on
    - `AGENTS.md` (Iteration workflow → auto-mattpocock, Deployment → deploy-to-server, Tech stack)
    - `README.md` (agent-driven section + one-click deploy section + tech stack + dir map)
    - `deploy.config.json` draft (appName/port filled; server empty until first deploy asks)
+4. **Run auto-mattpocock's initialization** (step 4 below): it finishes setting up the repo and
+   asks what to work on.
 
 ## Usage
 
@@ -81,21 +83,16 @@ merge; README → merge; deploy.config.json already exists → leave it.
 
 **Completion**: the three files are written to the target project; conflicts were put to the user.
 
-### 4. Hand off to auto-mattpocock's initialization
+### 4. Run auto-mattpocock's initialization
 
-The project now has the skills and scaffold. **Run `auto-mattpocock`'s initialization sequence next** —
-read `auto-mattpocock/SKILL.md` and follow its Preflight section top to bottom: it installs its
-mattpocock dependency skills, configures the repo's issue tracker / triage / domain conventions
-(`docs/agents/`, AGENTS.md Agent skills block), then **proactively grills what the user wants to work
-on now** (the user may stop there if undecided — init is complete either way).
+The project now has the skills and scaffold. **Run `auto-mattpocock`'s initialization next** — read
+`auto-mattpocock/SKILL.md` and follow its initialization section top to bottom. It completes the
+repo setup and then asks the user what to work on (the user may stop there if undecided — the
+project is fully initialized either way). deploy.config.json's server fields stay empty until the
+first deploy asks for them.
 
-- This skill does **not** know about setup-matt-pocock-skills or the repo-configuration details;
-  those belong to auto-mattpocock. init-agent-project's job ends at placing the skills and the
-  scaffold, then handing control to auto-mattpocock.
-- deploy.config.json's server fields stay empty until the first deploy asks for them.
-
-**Completion**: auto-mattpocock's Preflight ran (or the user explicitly deferred it); report what was
-installed/scaffolded and that the agent is now ready for requests.
+**Completion**: auto-mattpocock's initialization ran (or the user explicitly deferred it); report
+what was installed/scaffolded and that the agent is now ready for requests.
 
 ## Principles
 
