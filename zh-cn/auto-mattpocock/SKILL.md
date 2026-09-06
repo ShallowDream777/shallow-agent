@@ -1,6 +1,6 @@
 ---
 name: auto-mattpocock
-description: 把 Matt-Pocock 工程流程变成项目的默认迭代方式，可移植、自初始化。当用户以普通对话提出需求（新功能、修改、bug、设计决策、继续/执行某功能）时，判断所处阶段并执行对应工程技能，产出 spec + tickets。首次使用自动完成两段初始化：按 mattpocock/skills 官方 README 的推荐途径安装缺失的依赖技能到本技能所在层级（项目级或用户级），并执行 setup-matt-pocock-skills 的仓库配置流程（写 AGENTS.md + docs/agents/）。开发者无需记忆任何技能名。
+description: 把 Matt-Pocock 工程流程变成项目的默认迭代方式，可移植、自初始化。它的初始化序列（装依赖技能 → 跑 setup-matt-pocock-skills 配置仓库 → 主动 grill 问现在要做什么，可中止）是项目的初始化入口，可被其他技能调用（如 init-agent-project）。初始化后，对话里的每个请求（功能、修改、bug、设计决策）都路由到对应工程技能，产出 spec + tickets；需求不清晰会自动再 grill。开发者无需记忆任何技能名。
 ---
 
 # Auto Matt-Pocock
@@ -53,7 +53,13 @@ description: 把 Matt-Pocock 工程流程变成项目的默认迭代方式，可
 
 **完成判据**：`docs/agents/issue-tracker.md` 存在（或用户显式选择了 tracker 类型）；`AGENTS.md`/`CLAUDE.md` 有 `## Agent skills` 块；`CONTEXT.md` 约定就位。
 
-**完成判据**：阶段判断所需的最小依赖集（对应即将进入的阶段）已可发现；若安装失败（无网络/无 git），明确告知用户"auto-mattpocock 需要联网安装依赖技能"，不硬跑。
+### 第 3 步：主动发起 grill（问现在要做什么）
+
+仓库配置完成、可用了。**主动问用户现在想做什么**——用设计澄清的 grill（阶段 A 的 grill-with-docs）开场，而不是干等用户提需求。用户没想好可以中止（"还没有 / 只是先搭好"）——没关系，初始化到此已完成。之后用户随时提需求，本技能按正常阶段路由处理（需求不清晰会自动再 grill）。
+
+**怎么做**：上面整个 Preflight 序列（检查 → 安装 → setup → grill）**就是本技能的初始化入口**。
+其他技能可以通过读本 SKILL.md、从头按 Preflight 执行来调用它——它们不需要知道
+setup-matt-pocock-skills 的存在。`init-agent-project` 放好技能后正是这么做的。
 
 ## 执行方式
 

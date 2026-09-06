@@ -1,24 +1,25 @@
 ---
 name: init-agent-project
-description: 把任意项目初始化为「Agent 驱动」项目：引入 auto-mattpocock + deploy-to-server 两个技能到项目的 .agents/skills/，询问技术栈，并按项目名/技术栈生成 AGENTS.md、README（agent 引导段）与 deploy.config.json 雏形。当用户说「初始化这个项目 / 项目接入 agent 流程 / 搭建 agent 驱动项目 / 让这个项目能用 auto-mattpocock 和部署」时使用。可复用：技能自带两份技能的副本与模板，拷到任何项目即用。
+description: 把任意项目初始化为「Agent 驱动」项目：把 auto-mattpocock + deploy-to-server 两个技能拷进项目的 .agents/skills/，询问技术栈，按项目名/技术栈生成 AGENTS.md、README（agent 引导段）与 deploy.config.json 雏形，然后**交给 auto-mattpocock 自己的初始化流程**（它会装自己的依赖技能、配置仓库约定、并主动 grill 问要做什么）。本技能只负责放技能和搭骨架——不知道 setup-matt-pocock-skills 的存在。当用户说「初始化这个项目 / 项目接入 agent 流程 / 搭建 agent 驱动项目」时使用。可复用：技能自带两份技能的副本与模板，拷到任何项目即用。
 ---
 
 # Init Agent Project
 
 把任意（新或现有）项目初始化成「Agent 驱动」形态：带 `auto-mattpocock`（迭代路由）与
 `deploy-to-server`（一键部署）两个技能，配上让 agent 知道「本项目由技能驱动」的 AGENTS.md /
-README / deploy.config.json。
+README / deploy.config.json，最后把初始化交给 auto-mattpocock。
 
-## 它做什么（三步）
+## 它做什么（四步）
 
 1. **引入技能**：把本技能 `resources/skills/` 下的 auto-mattpocock、deploy-to-server 拷到目标
    项目的 `.agents/skills/`（不存在则创建）。**副本是本技能携带的**——技能更新时重新拷贝即可。
 2. **询问技术栈**：问项目名、对话默认语言、前端框架、后端框架、数据库、对外端口
-   （一次简短问卷，不问设计细节——技术澄清交给后续 auto-mattpocock 的 grill 流程）。
+   （一次简短问卷，不问设计细节）。
 3. **生成引导文件**：按答案填模板——
    - `AGENTS.md`（Iteration workflow 指 auto-mattpocock、Deployment 指 deploy-to-server、Tech stack）
    - `README.md`（agent 驱动说明段 + 一键部署段 + 技术栈 + 目录速查）
    - `deploy.config.json` 雏形（appName/端口已填，server 空待首次部署问）
+4. **交给 auto-mattpocock 初始化**（见下方第 4 步）——本技能到此结束，之后由 auto 接管。
 
 ## 使用
 
@@ -40,7 +41,7 @@ README / deploy.config.json。
 用默认值即可时直接接受，不逐项追问。带默认建议的项不必等答案——用户没异议就用默认：
 
 - **项目名**（自由输入；用于 README 标题 / deploy.config appName / AGENTS 文件名）
-- **对话默认语言**（选项：中文 / English；默认中文）
+- **对话默认语言**（选项：中文 / English；**决定引导文档整体语言**，见步骤 3）
 - **前端框架**（选项：Vue3+Vite / React+Next / 无（纯后端） / 自定义）
 - **后端框架**（选项：Express / Fastify / NestJS / 无（纯前端/静态） / 自定义）
 - **数据库**（选项：SQLite / PostgreSQL / MySQL / 无 / 自定义）
@@ -53,9 +54,16 @@ README / deploy.config.json。
 
 ### 3. 生成引导文件
 
-用 `resources/templates/` 里的模板 + 步骤 2 的答案填出三份文件，写入目标项目根：
+用 `resources/templates/` 里的模板 + 步骤 2 的答案填出文件，写入目标项目根。**按所选语言选模板**
+（步骤 2 的"对话默认语言"）：
 
-- `AGENTS.md`（模板替换 `{{language}}`、`{{techstack_lines}}`）
+- **中文** → `AGENTS.zh.md`、`README.zh.md`（整份文档以中文产出）
+- **English / 其他** → `AGENTS.md`、`README.md`
+- `deploy.config.json` 语言无关（共用模板）
+
+要写的文件（用语言匹配的模板）：
+
+- `AGENTS.md`（替换 `{{language}}`、`{{techstack_lines}}`）
 - `README.md`（替换 `{{projectName}}`、`{{one_line_description}}`、`{{techstack_lines}}`；
   若目标已有 README，**合并而非覆盖**——保留其原内容，把 agent 引导段/部署段/目录速查补进去）
 - `deploy.config.json`（替换 `{{appName}}`、`{{port}}`）
@@ -65,15 +73,24 @@ deploy.config.json 已存在则不动。
 
 **完成判据**：三份文件写入目标项目；有冲突处已征询用户。
 
-### 4. 报告与下一步
+### 4. 交给 auto-mattpocock 的初始化
 
-- 报告：哪些技能已引入、哪三份文件已生成/合并。
-- 下一步提示：首次提需求 agent 会走 auto-mattpocock（必要时触发它的 setup 流程产出
-  docs/agents/）；首次部署会问服务器信息补全 deploy.config.json。
+项目现在有了技能和骨架。**下一步执行 auto-mattpocock 的初始化序列**——读 `auto-mattpocock/SKILL.md`
+并按它的 Preflight 从头执行：它会安装自己的 mattpocock 依赖技能、配置仓库的 issue tracker /
+triage / domain 约定（写 `docs/agents/`、AGENTS.md 的 Agent skills 块），然后**主动 grill 问用户
+现在想做什么**（用户没想好可以中止——初始化到此也已完成）。
+
+- **本技能不负责 setup-matt-pocock-skills 或仓库配置细节**——那些属于 auto-mattpocock。
+  init-agent-project 的职责到"放好技能和骨架、把控制权交给 auto"为止。
+- `deploy.config.json` 的 server 字段留空，直到首次部署时再问。
+
+**完成判据**：auto-mattpocock 的 Preflight 已执行（或用户明确推迟）；报告已安装/生成了什么，
+并说明 agent 现在可以接受需求了。
 
 ## 原则
 
 - **技能副本随引子分发**：本技能是 auto-mattpocock + deploy-to-server 的分发载体——它们更新时，
   把新版本拷回 `resources/skills/` 即完成引子同步。
 - **模板可编辑**：模板在 `resources/templates/`，按团队口味改（AGENTS 措辞、README 结构）。
+  语言成对：`AGENTS.md`/`AGENTS.zh.md`、`README.md`/`README.zh.md`——改措辞时两边同步。
 - **合并不覆盖**：目标项目已有 README/AGENTS.md 时，补内容而非整份覆盖。
