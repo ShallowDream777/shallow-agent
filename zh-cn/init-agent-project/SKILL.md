@@ -23,7 +23,8 @@ README / deploy.config.json，最后把初始化交给 auto-mattpocock。它解�
    用到这些答案，见下方步骤 4）。
 4. **持久化技术栈 + 生成引导文件**：写 `README.md`（**技术栈的唯一持久化记录**——下次运行时步骤
    2 会从这读取），以及 `AGENTS.md`、`deploy.config.json`。
-5. **运行 auto-mattpocock 的初始化**（见下方步骤 5）——它完成仓库收尾配置并问要做什么。
+5. **移交给 auto-mattpocock 的初始化**（见下方步骤 5）：读 `auto-mattpocock/SKILL.md` 并按它的初始化
+   执行。本技能在交接处结束——之后由 auto-mattpocock 自己的流程接手。
 
 ## 使用
 
@@ -121,14 +122,18 @@ deploy.config.json 已存在则不动。
 **完成判据**：README.md / AGENTS.md / deploy.config.json 写入目标项目，技术栈已记录在 README.md；
 有冲突处已征询用户。
 
-### 5. 运行 auto-mattpocock 的初始化
+### 5. 移交给 auto-mattpocock 的初始化
 
-项目现在有了技能、（若新建）骨架和记录在 README.md 里的技术栈。**接下来运行 `auto-mattpocock`
-的初始化**——读 `auto-mattpocock/SKILL.md` 并按它的初始化章节从头执行。它会完成仓库的收尾配置，
-然后**问用户现在想做什么**（用户没想好可以中止——项目到这也已初始化完成）。
+项目现在有了技能、（若新建）骨架和记录在 README.md 里的技术栈。**以交接作为最后一步，启动
+auto-mattpocock 的初始化**——读 `auto-mattpocock/SKILL.md` 并按它的初始化章节从头执行。
 
-**完成判据**：auto-mattpocock 的初始化已执行（或用户明确推迟）；报告已安装/生成了什么，
-并说明 agent 现在可以接受需求了。
+这是**一次干净的交接，不是合并**。从控制权进入 auto-mattpocock 初始化的那一刻起，之后的一切——
+它要装什么、配置什么、问什么问题、何时停下——都归 auto-mattpocock 自己的流程所有。本技能不跟进、
+不评判、也不汇报那些。本技能的工作在交接时结束。
+
+**完成判据**：本技能自己的产物都已就位——两个技能在 `.agents/skills/`、技术栈记录在 `README.md`、
+AGENTS.md / README / deploy.config.json 已写入、空目标已搭骨架——并且 auto-mattpocock 的初始化已
+按其 SKILL.md 完成交接。
 
 ## 原则
 

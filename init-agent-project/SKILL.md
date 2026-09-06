@@ -27,8 +27,9 @@ project skeleton if the target is empty.
 4. **Persist the stack + scaffold the guidance files**: write `README.md` (the **single durable
    record** of the tech stack — step 2 reads it back on a future run), plus `AGENTS.md` and
    `deploy.config.json`.
-5. **Run auto-mattpocock's initialization** (step 5 below): it finishes setting up the repo and
-   asks what to work on.
+5. **Hand off to auto-mattpocock's initialization** (step 5 below): read `auto-mattpocock/SKILL.md`
+   and follow its initialization. This skill ends at the hand-off — auto-mattpocock's own flow takes
+   over from there.
 
 ## Usage
 
@@ -143,15 +144,21 @@ merge; README → merge; deploy.config.json already exists → leave it.
 **Completion**: README.md / AGENTS.md / deploy.config.json are written to the target project, with
 the stack recorded in README.md; conflicts were put to the user.
 
-### 5. Run auto-mattpocock's initialization
+### 5. Hand off to auto-mattpocock's initialization
 
-The project now has the skills, a skeleton (if new), and the stack recorded in README.md. **Run
-`auto-mattpocock`'s initialization next** — read `auto-mattpocock/SKILL.md` and follow its
-initialization section top to bottom. It completes the repo setup and then asks the user what to
-work on (the user may stop there if undecided — the project is fully initialized either way).
+The project now has the skills, a skeleton (if new), and the stack recorded in README.md. **Start
+auto-mattpocock's initialization as the final hand-off**: read `auto-mattpocock/SKILL.md` and follow
+its initialization section top to bottom.
 
-**Completion**: auto-mattpocock's initialization ran (or the user explicitly deferred it); report
-what was installed/scaffolded and that the agent is now ready for requests.
+This is a **clean hand-off**, not a merge. The moment control enters auto-mattpocock's
+initialization, auto-mattpocock's own flow owns everything that follows — what it installs or
+configures, the questions it asks, and when it stops. Init-agent-project does not follow, judge, or
+report on any of that. Its work ends at the hand-off.
+
+**Completion**: this skill's own deliverables are in place — both skills in `.agents/skills/`, the
+stack recorded in `README.md`, AGENTS.md / README / deploy.config.json written, and a skeleton
+scaffolded if the target was empty — and auto-mattpocock's initialization has been handed over per
+its SKILL.md.
 
 ## Principles
 
