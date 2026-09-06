@@ -19,8 +19,9 @@ project skeleton if the target is empty.
    copies are bundled with this skill** — re-copy to refresh them when the skills update.
 2. **Resolve the tech stack**: read the target's `README.md`. If it already records a stack (a `## Tech stack`
    section or a `**Tech stack**:` line), adopt it — no questionnaire. Otherwise run the short
-   questionnaire (project name, conversation language, frontend framework, backend framework,
-   database, public port). No design detail — that is left to auto-mattpocock's grill flow later.
+   questionnaire (conversation language **first, asked in English**, then project name, frontend
+   framework, backend framework, database, public port). No design detail — that is left to
+   auto-mattpocock's grill flow later.
 3. **Scaffold the project skeleton** (new empty target): create the directory structure and
    package.json per the resolved stack (step 4 builds on it; see below).
 4. **Persist the stack + scaffold the guidance files**: write `README.md` (the **single durable
@@ -68,13 +69,18 @@ If the README has no tech-stack entry (a brand-new project, or one whose README 
 run the questionnaire below. The resolved values are written into `README.md` in step 4, which makes
 README the single durable record of the stack.
 
-For each questionnaire item, present **preset options to pick from** (each with a recommendation and
-common choices); free-text only if the user picks "Other/custom". Accept the default when the user is
-fine with it; don't chase every answer. Items with a recommended default don't need a reply — use the
-default unless the user objects:
+**Ask the conversation language first — in English** — as the very first question (options: Chinese /
+English; default English). Its answer decides the language of everything after it: the rest of the
+questionnaire, the questions you ask during this init run, the guidance files written in step 4, and
+your reports. If the user answers Chinese, switch to Chinese for all subsequent interaction; if
+English (or other), continue in English.
+
+Then, **in that chosen language**, present each remaining item as **preset options to pick from**
+(each with a recommendation and common choices); free-text only if the user picks "Other/custom".
+Accept the default when the user is fine with it; don't chase every answer. Items with a recommended
+default don't need a reply — use the default unless the user objects:
 
 - **Project name** (free text; used for README title / deploy.config appName)
-- **Conversation default language** (options: Chinese / English; default English)
 - **Frontend framework** (options: Vue3+Vite / React+Next / none (backend-only) / custom)
 - **Backend framework** (options: Express / Fastify / NestJS / none (frontend-only/static) / custom)
 - **Database** (options: SQLite / PostgreSQL / MySQL / none / custom)
