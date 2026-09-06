@@ -30,6 +30,13 @@ left half-synced here ships a stale or broken skill downstream. Three copies mus
    project), never in a skill body.
 6. **README stays a front door.** Do not duplicate skill mechanics in README — point to each
    skill's SKILL.md. Update README only for repo-level facts (install, structure, usage table).
+7. **State skill boundaries by what a skill hands to whom, not by what it avoids.** Naming
+   something a skill is supposed to be ignorant of (e.g. "this skill does not know about X" / "X
+   is not this skill's responsibility") pulls X into that skill's context — it becomes more
+   visible, not less — and breaks the seam. Express the same boundary positively: a skill that
+   stops at a seam completes its own work, then says "run \<next-skill\>'s flow (read its SKILL.md
+   and follow it)". It names the skill it calls next, and nothing beyond that. Quote a banned
+   phrase only as a labelled counter-example alongside the positive form.
 
 ## Change checklist
 

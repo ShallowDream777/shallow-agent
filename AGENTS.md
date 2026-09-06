@@ -18,6 +18,10 @@ Full detail: [CONTRIBUTING.md](CONTRIBUTING.md). The short version:
 - Code (scripts/, yaml display names) is English-only; templates keep `.md`/`.zh.md` pairs in sync.
 - No hardcoded project values in skills — project specifics live in `deploy.config.json` per
   project.
+- **State boundaries positively.** A skill that stops at a seam says what it completes and hands
+  to which skill next ("run `X`'s flow — read its SKILL.md and follow it"). Name only the skills
+  it calls; leave out what it is supposed to be ignorant of — naming something a skill "does not
+  know about" pulls it into that skill's context.
 
 Commit all three copies together; never commit an English-only change that leaves `zh-cn/` or the
 bundled copies stale.
