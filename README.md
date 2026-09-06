@@ -19,17 +19,30 @@ Mechanics, scope and prerequisites of each skill live in its own `SKILL.md`.
 
 ## Install
 
-### Option A: one-shot bootstrap (recommended)
-
-Install `init-agent-project`, then tell the target project "initialize this project". It copies
-in the other two skills, asks the tech stack (option-based), and scaffolds the guidance files.
+### One-liner: install the repo, then initialize your project
 
 ```bash
-# user-level (available in every project) or project-level .agents/skills/
-cp -r init-agent-project ~/.agents/skills/
+# 1. clone and install (copies the three skills to user-level ~/.agents/skills/)
+git clone https://github.com/ShallowDream777/shallow-agent.git
+bash shallow-agent/install.sh
+
+# 2. in any project, tell your agent:
+#    "initialize this project"
 ```
 
-### Option B: install a single skill
+The agent then runs `init-agent-project`: it copies the two skills into the project's
+`.agents/skills/`, asks the tech stack (option-based), and scaffolds `AGENTS.md`,
+`README.md` (agent-guidance) and `deploy.config.json`.
+
+### Install options for `install.sh`
+
+```bash
+bash install.sh                 # user-level: ~/.agents/skills/ (every project)
+bash install.sh -p <project>    # project-level: <project>/.agents/skills/
+bash install.sh -d <dir>        # custom skills directory
+```
+
+### Install a single skill (no repo clone)
 
 ```bash
 cp -r <skill-dir>  <your-project>/.agents/skills/
