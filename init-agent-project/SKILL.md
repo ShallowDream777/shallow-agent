@@ -1,6 +1,6 @@
 ---
 name: init-agent-project
-description: Initialize any project as an "agent-driven" project: copy the auto-mattpocock + deploy-to-server skills into the project's .agents/skills/, ask the tech stack, and scaffold AGENTS.md, README (agent-guidance section) and a deploy.config.json draft per project name/stack. Use when the user says "initialize this project / wire this project up with the agent flow / set up an agent-driven project". Reusable: the skill bundles both skills and templates, so it works on any project as-is.
+description: Initialize any project as an "agent-driven" project: copy the auto-mattpocock + deploy-to-server skills into the project's .agents/skills/, ask the tech stack, scaffold AGENTS.md / README / deploy.config.json, then hand off to auto-mattpocock's own initialization (it installs its dependency skills, configures the repo conventions, and grills what to build now). This skill only places skills and scaffold — it does not know about setup-matt-pocock-skills. Use when the user says "initialize this project / wire this project up with the agent flow / set up an agent-driven project". Reusable: the skill bundles both skills and templates, so it works on any project as-is.
 ---
 
 # Init Agent Project
@@ -81,12 +81,21 @@ merge; README → merge; deploy.config.json already exists → leave it.
 
 **Completion**: the three files are written to the target project; conflicts were put to the user.
 
-### 4. Report and next steps
+### 4. Hand off to auto-mattpocock's initialization
 
-- Report: which skills were installed, which three files were created/merged.
-- Next steps: on the first feature request the agent will run auto-mattpocock (firing its setup flow
-  to produce docs/agents/ when needed); the first deploy asks for server info to complete
-  deploy.config.json.
+The project now has the skills and scaffold. **Run `auto-mattpocock`'s initialization sequence next** —
+read `auto-mattpocock/SKILL.md` and follow its Preflight section top to bottom: it installs its
+mattpocock dependency skills, configures the repo's issue tracker / triage / domain conventions
+(`docs/agents/`, AGENTS.md Agent skills block), then **proactively grills what the user wants to work
+on now** (the user may stop there if undecided — init is complete either way).
+
+- This skill does **not** know about setup-matt-pocock-skills or the repo-configuration details;
+  those belong to auto-mattpocock. init-agent-project's job ends at placing the skills and the
+  scaffold, then handing control to auto-mattpocock.
+- deploy.config.json's server fields stay empty until the first deploy asks for them.
+
+**Completion**: auto-mattpocock's Preflight ran (or the user explicitly deferred it); report what was
+installed/scaffolded and that the agent is now ready for requests.
 
 ## Principles
 
