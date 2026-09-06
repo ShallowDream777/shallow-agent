@@ -46,6 +46,10 @@ read the official README's Installation section** (`https://github.com/mattpococ
 raw README at `https://raw.githubusercontent.com/mattpocock/skills/main/README.md`) and follow its
 **latest recommended route for the current agent/situation**. Then:
 
+- If the route fetches the mattpocock/skills repo (clone/download) to read and install from it,
+  **stage that fetch in a hidden temp dir inside the project**, e.g. `.mattpocock-tmp/` (gitignore
+  it) — never in the project root or a real source folder. **Delete it after the install**
+  (`rm -rf`). Do not leave the mattpocock repo behind.
 - Make sure the install covers **every skill in the dependency list** (however it installs, all 8
   skills including setup-matt-pocock-skills must be available)
 - If the official route is interactive (e.g. skills CLI asking which skills/agents), drive it with

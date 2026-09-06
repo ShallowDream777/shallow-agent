@@ -31,10 +31,10 @@ AGENTS.md / README / deploy.config.json that tell the agent this project runs on
 If this skill reached the project by cloning the shallow-agent repository (one-line install), the
 clone was a temporary delivery vehicle — **it is not part of the project**. Clean it up:
 
-- Clone into a **system temp directory** (e.g. under `$TMPDIR`/`$TEMP`), never into the project
-  folder itself. Do not `git clone` into the target project.
-- **After initialization completes, delete the temporary clone** (`rm -rf` the temp dir you cloned
-  into). Leaving the whole shallow-agent repo (with `.git`) inside the project is a bug.
+- Clone into a **hidden temp dir inside the project**, e.g. `.shallow-agent-tmp/` (gitignore it),
+  never straight into the project root or a real source folder.
+- **After initialization completes, delete that temp clone** (`rm -rf` it). Leaving the whole
+  shallow-agent repo (with `.git`) inside the project is a bug.
 - This applies to both project-level and user-level installs: install the skills from the temp
   clone, then remove the clone.
 

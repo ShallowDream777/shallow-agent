@@ -28,9 +28,10 @@ README / deploy.config.json，最后把初始化交给 auto-mattpocock。
 如果本技能是通过 clone shallow-agent 仓库（一句话安装）到达项目的，那个 clone 只是**临时投递
 载体**——不是项目的一部分。要清理：
 
-- **clone 到系统临时目录**（如 `$TMPDIR`/`$TEMP` 下），绝不 clone 进项目文件夹本身。
-- **初始化完成后删除临时 clone**（`rm -rf` 你 clone 进去的临时目录）。把整个 shallow-agent 仓库
-  （含 `.git`）留在项目里是一个 bug。
+- **clone 到项目内的隐藏临时目录**，如 `.shallow-agent-tmp/`（加入 gitignore），绝不 clone 进
+  项目根目录或真实源码文件夹。
+- **初始化完成后删除那个临时 clone**（`rm -rf`）。把整个 shallow-agent 仓库（含 `.git`）留在
+  项目里是一个 bug。
 - 项目级和用户级安装都适用：从临时 clone 里装技能，然后删除 clone。
 
 ### 0. 确认目标项目

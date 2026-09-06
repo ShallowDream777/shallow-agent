@@ -28,8 +28,8 @@ In any project, tell your agent:
 
 The agent (which can run shell commands and reach GitHub) does this on its own:
 
-1. `git clone https://github.com/ShallowDream777/shallow-agent` into a **system temp dir** (never
-   into this project)
+1. `git clone https://github.com/ShallowDream777/shallow-agent` into a hidden temp dir inside this
+   project (e.g. `.shallow-agent-tmp/`) — never into the project root or a real source folder
 2. run `bash shallow-agent/install.sh` to copy the three skills
    (`auto-mattpocock`, `deploy-to-server`, `init-agent-project`) to user-level `~/.agents/skills/`
 3. run `init-agent-project`: copy the two skills into this project's `.agents/skills/`, ask the

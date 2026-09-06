@@ -34,6 +34,7 @@ description: 把 Matt-Pocock 工程流程变成项目的默认迭代方式，可
 
 **如何安装（以官方 README 为准，勿写死命令）**：mattpocock/skills 的安装方式会随官方演进（当前多种途径：skills CLI、Claude Code plugin 等）。**执行时先读取官方 README 的 Installation 章节**（https://github.com/mattpocock/skills —— 用 web_fetch 读 raw README：`https://raw.githubusercontent.com/mattpocock/skills/main/README.md`），按其**最新推荐的、适用于当前 agent/场景的途径**执行。然后：
 
+- 若该途径需要先获取 mattpocock/skills 仓库（clone/下载）再读取安装，把**这次获取放到项目内的隐藏临时目录**，如 `.mattpocock-tmp/`（加入 gitignore）——绝不放进项目根或真实源码文件夹。**安装完成后删除它**（`rm -rf`）。不要把 mattpocock 仓库留在项目里。
 - 确保安装覆盖**本依赖清单里的全部技能**（无论哪种安装途径，都要让 setup-matt-pocock-skills 在内的 8 个技能可用）
 - 若官方途径是交互式的（如 skills CLI 让你挑技能/agent），用其非交互 flags 或程序化应答完成，不卡在交互上
 - 保持官方工具对安装的追踪（如 skills CLI 的 `skills-lock.json`）完整，不要绕过它手写文件

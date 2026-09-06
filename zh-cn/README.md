@@ -27,7 +27,8 @@ Linux 服务器、一键初始化进新项目。技能内**零写死**——项�
 
 agent（能跑 shell 命令、能访问 GitHub）会自己完成：
 
-1. `git clone https://github.com/ShallowDream777/shallow-agent` 到**系统临时目录**（绝不 clone 进本项目）
+1. `git clone https://github.com/ShallowDream777/shallow-agent` 到本项目内的隐藏临时目录
+   （如 `.shallow-agent-tmp/`）——绝不 clone 进项目根目录或真实源码文件夹
 2. 运行 `bash shallow-agent/install.sh`，把三个技能（`auto-mattpocock`、`deploy-to-server`、
    `init-agent-project`）拷到用户级 `~/.agents/skills/`
 3. 运行 `init-agent-project`：把两个技能拷进本项目的 `.agents/skills/`、选项式询问技术栈、

@@ -1,6 +1,6 @@
 ---
 name: auto-mattpocock
-description: Makes the Matt-Pocock engineering workflow the project's default iteration mode — portable and self-initializing. When the user makes a request in conversation (feature, change, bug, design decision, continue/execute), determine the current stage and execute the matching engineering skill, producing spec + tickets. On first use it completes two init phases: install missing dependency skills to this skill's own level (project or user) via the mattpocock/skills official README's recommended route, and run setup-matt-pocock-skills to configure the repo (write AGENTS.md + docs/agents/). Developers never need to remember skill names.
+description: Makes the Matt-Pocock engineering workflow the project's default iteration mode — portable and self-initializing. Its initialization sequence (install dependency skills → run setup-matt-pocock-skills to configure the repo → proactively grill what to build now, stop allowed) is the project's init entry point and can be invoked by other skills (e.g. init-agent-project). After init, every request in conversation (feature, change, bug, design decision) is routed to the matching engineering skill, producing spec + tickets; unclear requests auto-grill again. Developers never need to remember skill names.
 ---
 
 # Auto Matt-Pocock
@@ -46,6 +46,10 @@ read the official README's Installation section** (`https://github.com/mattpococ
 raw README at `https://raw.githubusercontent.com/mattpocock/skills/main/README.md`) and follow its
 **latest recommended route for the current agent/situation**. Then:
 
+- If the route fetches the mattpocock/skills repo (clone/download) to read and install from it,
+  **stage that fetch in a hidden temp dir inside the project**, e.g. `.mattpocock-tmp/` (gitignore
+  it) — never in the project root or a real source folder. **Delete it after the install**
+  (`rm -rf`). Do not leave the mattpocock repo behind.
 - Make sure the install covers **every skill in the dependency list** (however it installs, all 8
   skills including setup-matt-pocock-skills must be available)
 - If the official route is interactive (e.g. skills CLI asking which skills/agents), drive it with
@@ -77,6 +81,19 @@ few user answers** — do not skip its questions and write directly.
 
 **Completion**: `docs/agents/issue-tracker.md` exists (or the user explicitly chose a tracker type);
 `AGENTS.md`/`CLAUDE.md` has an `## Agent skills` block; `CONTEXT.md` conventions in place.
+
+### Step 3: kick off with a grill (ask what to build now)
+
+The repo is now configured and usable. **Proactively ask what the user wants to work on right now** —
+open with a design-clarification grill (stage A's grill-with-docs), not a silence that waits for a
+request. The user may stop here if they haven't decided yet ("nothing yet / just setting up"); that is
+fine — initialization is complete either way. Later, whenever the user brings a request, this skill
+re-runs the normal stage routing (stage A automatically grills again if the request is unclear).
+
+**How**: the whole Preflight sequence above (check → install → setup → grill) **is the initialization
+entry point of this skill.** Other skills may call it by reading this SKILL.md and following the
+Preflight section top to bottom — they do not need to know setup-matt-pocock-skills exists.
+`init-agent-project` does exactly this after placing the skills.
 
 ## How to execute skills
 
